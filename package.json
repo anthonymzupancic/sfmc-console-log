@@ -1,0 +1,22 @@
+{
+  "name": "sfmc-console-log",
+  "version": "1.0.0",
+  "description": "Script Activity Logging for SFMC",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anthonymzupancic/sfmc-console-log.git"
+  },
+  "keywords": [
+    "sfmc"
+  ],
+  "author": "Anthony Zupancic",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/anthonymzupancic/sfmc-console-log/issues"
+  },
+  "homepage": "https://github.com/anthonymzupancic/sfmc-console-log#readme"
+}

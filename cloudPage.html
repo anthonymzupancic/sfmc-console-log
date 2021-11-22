@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Welcome to SFMC Console Log</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div id="app">
+        <v-app>
+            <v-main>
+                <v-container class="mt-15">
+                    <v-row class="d-flex justify-center" no-gutters>
+                        <v-col cols="12" sm="5" class="mr-10">
+                            <v-text-field v-model="logName" label="Log Data Extension" placeholder="Enter Data Extension Name" class="d-flex align-center" outlined></v-text-field>
+                            <small class="mt-n20" v-if="error.logName.active">{{error.logName.msg}}</small>
+                        </v-col>
+                        <v-col cols="12" sm="6" class="d-flex align-start">
+                            <v-checkbox v-model="poll" :label="`Watch Log (${countDown})`" class="mb-n10 mr-8"></v-checkbox>
+                            <v-checkbox v-model="formatLog" label="Format Log Message" class=""></v-checkbox>
+                        </v-col>
+                    </v-row>
+
+                    <v-row>
+                        <v-col col="12" sm="10" class="blue-grey lighten-5 p-10">
+                            <v-simple-table fixed-header height="65vh">
+                                <template v-slot:default>
+                              <thead>
+                                <tr>
+                                  <th v-for="field in table.fields" :key="field" class="text-left">
+                                    {{field}}
+                                  </th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr
+                                  v-for="(item, index) in log"
+                                  :key="index"
+                                >
+                                  <td>{{ item.timestamp }}</td>
+                                  <td>{{ item.action }}</td>
+                                  <td>
+                                      <pre v-if="formatLog">{{ item.log }}</pre>
+                                      <span v-else>{{item.log}}</span>
+                                    </td>
+                                </tr>
+                              </tbody>
+                            </template>
+                            </v-simple-table>
+                        </v-col>
+                    </v-row>
+                </v-container>
+            </v-main>
+        </v-app>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+    <script>
+        var app = new Vue({
+            el: '#app',
+            vuetify: new Vuetify(),
+            data: {
+                codeResource: '',
+                poll: false,
+                formatLog: true,
+                countDown: 3,
+                countDownDefault: 3,
+                stopCountDownIn: 0,
+                previousTotal: 0,
+                table: {
+                    fields: ['timestamp', 'action', 'log']
+                },
+                logName: '',
+                log: [],
+                error: {
+                    logName: {
+                        active: false,
+                        msg: 'Logging Data Extension Name Required.'
+                    }
+                }
+            },
+            watch: {
+                countDown: {
+                    handler(value) {
+                        if (value === 1) {
+                            this.updateLog()
+                        }
+                    }
+                },
+                poll: {
+                    handler(value) {
+                        if (value === true) {
+                            if (this.logName.length > 0) {
+                                this.error.logName.active = false;
+                                this.countDownTimer()
+                            } else {
+                                this.error.logName.active = true;
+                                this.poll = false;
+                                this.countDown = this.countDownDefault;
+                            }
+                        }
+                    }
+                }
+            },
+            methods: {
+                countDownTimer() {
+                    if (this.poll) {
+                        if (this.countDown > 0) {
+                            setTimeout(() => {
+                                this.countDown -= 1
+                                this.countDownTimer()
+                            }, 1000)
+                        } else {
+                            this.countDown = this.countDownDefault;
+                            this.countDownTimer()
+                        }
+                    }
+                },
+                updateLog: async function() {
+                    try {
+                        const resp = await axios.get(`${this.codeResource}?log=${this.logName}&int=${this.countDownDefault}`)
+                        console.log(resp.data)
+
+                        if (this.previousTotal === resp.data.length) {
+                            if (this.stopCountDownIn === 3) {
+                                this.poll = false;
+                                this.countDown = this.countDownDefault;
+                                this.stopCountDownIn = 0;
+                            } else {
+                                this.stopCountDownIn += 1
+                                this.log = new Set([...resp.data])
+                            }
+                        } else {
+                            this.stopCountDownIn += 1
+                            this.previousTotal = resp.data.length;
+                            this.log = new Set([...resp.data])
+                        }
+                    } catch (err) {
+                        console.log(err)
+                    }
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>
