@@ -26,12 +26,12 @@
                     </v-row>
 
                     <v-row>
-                        <v-col col="12" sm="10" class="blue-grey lighten-5 p-10">
+                        <v-col col="12" class="blue-grey lighten-5 p-5">
                             <v-simple-table fixed-header height="65vh">
                                 <template v-slot:default>
                               <thead>
                                 <tr>
-                                  <th v-for="field in table.fields" :key="field" class="text-left">
+                                  <th col="12" sm="3" v-for="field in table.fields" :key="field" class="text-left">
                                     {{field}}
                                   </th>
                                 </tr>
@@ -41,9 +41,9 @@
                                   v-for="(item, index) in log"
                                   :key="index"
                                 >
-                                  <td>{{ item.timestamp }}</td>
-                                  <td>{{ item.action }}</td>
-                                  <td>
+                                  <td col="12" sm="3">{{ item.timestamp }}</td>
+                                  <td col="12" sm="3">{{ item.action }}</td>
+                                  <td col="12" sm="6">
                                       <pre v-if="formatLog">{{ item.log }}</pre>
                                       <span v-else>{{item.log}}</span>
                                     </td>
@@ -69,8 +69,8 @@
                 codeResource: '',
                 poll: false,
                 formatLog: true,
-                countDown: 3,
-                countDownDefault: 3,
+                countDown: 2,
+                countDownDefault: 30,
                 stopCountDownIn: 0,
                 previousTotal: 0,
                 table: {
@@ -126,21 +126,33 @@
                     try {
                         const resp = await axios.get(`${this.codeResource}?log=${this.logName}&int=${this.countDownDefault}`)
                         console.log(resp.data)
+                        let holdLog;
 
                         if (this.previousTotal === resp.data.length) {
-                            if (this.stopCountDownIn === 3) {
+                            if (this.stopCountDownIn === 10) {
                                 this.poll = false;
                                 this.countDown = this.countDownDefault;
                                 this.stopCountDownIn = 0;
                             } else {
                                 this.stopCountDownIn += 1
-                                this.log = new Set([...resp.data])
+                                holdLog = [...resp.data]
                             }
                         } else {
                             this.stopCountDownIn += 1
                             this.previousTotal = resp.data.length;
-                            this.log = new Set([...resp.data])
+                            holdLog = [...resp.data]
                         }
+
+
+
+                        this.log = holdLog.sort(function(a, b) {
+                            // Turn your strings into dates, and then subtract them
+                            // to get a value that is either negative, positive, or zero.
+                            return new Date(b.timestamp) - new Date(a.timestamp);
+                        });
+
+
+
                     } catch (err) {
                         console.log(err)
                     }

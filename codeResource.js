@@ -1,6 +1,6 @@
+//<script runat="server">
 //Uncomment Script tags when pasting into Code Resource
 
-//<script runat="server">
 Platform.Load("core", "1.1")
 var log = Platform.Request.GetQueryStringParameter('log')
 
@@ -18,20 +18,19 @@ function wsRead(logKey) {
     try {
 
         var d = new Date();
-        d.setMinutes(d.getMinutes() - 5);
-
+        d.setMinutes(d.getMinutes() - 20);
 
         var prox = new Script.Util.WSProxy();
-        var cols = ["Timestamp", "action", "msg"];
+        var cols = ["timestamp", "action", "log"];
         var filter = {
             LeftOperand: {
-                Property: "Timestamp",
+                Property: "timestamp",
                 SimpleOperator: "isNotNull",
                 Value: ""
             },
             LogicalOperator: "AND",
             RightOperand: {
-                Property: "Timestamp",
+                Property: "timestamp",
                 SimpleOperator: "greaterThanOrEqual",
                 Value: d
             }
