@@ -1,8 +1,5 @@
-//<script runat="server">
-//Uncomment Script tags when pasting into Code Resource
-
+<script runat='server'>
 Platform.Load("core", "1.1")
-var log = Platform.Request.GetQueryStringParameter('log')
 
 if (log === null || typeof log === 'undefined') {
     response('Log Data Extension is required')
@@ -120,4 +117,5 @@ FORMAT API RESPONSES from Code Resource Pages
 function response(res) {
     return Write(Stringify(res));
 }
-//</script>
+
+</script>

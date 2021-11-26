@@ -1,3 +1,10 @@
+<!-- 
+TODO:   
+    - automation watch - check every 1 - 2 minutes and auto toggle calls when running
+    - manual trigger for read call
+    - create logging data extension
+    - display logging/debug function to include in script to log
+ -->
 <!DOCTYPE html>
 <html>
 
@@ -13,15 +20,155 @@
     <div id="app">
         <v-app>
             <v-main>
+                <v-toolbar dense>
+                    <!-- <v-app-bar-nav-icon></v-app-bar-nav-icon> -->
+                    <v-menu v-model="viewMenu" :close-on-content-click="false" :nudge-width="200" right offset-x offset-y>
+                        <template v-slot:activator="{ on, attrs }">
+                        <div
+                        v-bind="attrs"
+                        v-on="on"
+                        class="mr-5">
+                        <v-icon v-if="viewMenu">mdi-chevron-down</v-icon>
+                        <v-icon v-else>mdi-menu</v-icon>
+
+                            
+                        </div>
+                            
+                      </template>
+
+                        <v-card>
+                            <v-list>
+                                <v-list-item>
+                                    <v-list-item-title>Create Data Extension</v-list-item-title>
+                                    <v-list-item-action class="text-center">
+                                        <v-text-field v-model="settings.countDownDefault"></v-text-field>
+                                    </v-list-item-action>
+                                </v-list-item>
+
+                                <v-list-item>
+                                    <v-list-item-title>View Logging Function</v-list-item-title>
+                                    <v-list-item-action class="text-center">
+                                        <v-text-field v-model="settings.stopCountDownInDefault"></v-text-field>
+                                    </v-list-item-action>
+                                </v-list-item>
+
+                                <v-list-item>
+                                    <v-list-item-title>Format Log</v-list-item-title>
+                                    <v-list-item-action>
+                                        <v-switch v-model="settings.formatLog" color="blue"></v-switch>
+                                    </v-list-item-action>
+                                </v-list-item>
+
+                                <v-list-item>
+                                    <v-list-item-title>Show Coutdown</v-list-item-title>
+                                    <v-list-item-action>
+                                        <v-switch v-model="settings.showCountdown" color="blue"></v-switch>
+                                    </v-list-item-action>
+                                </v-list-item>
+
+                            </v-list>
+
+                            <v-card-actions>
+                                <v-spacer></v-spacer>
+
+                                <v-btn text @click="viewSettings = false">
+                                    Close
+                                </v-btn>
+                            </v-card-actions>
+                        </v-card>
+                    </v-menu>
+                    <v-toolbar-title>[SFMC] console.log</v-toolbar-title>
+              
+                    <v-spacer></v-spacer>
+              
+                    <!-- <v-btn icon>
+                      <v-icon>mdi-magnify</v-icon>
+                    </v-btn>
+              
+                    <v-btn icon>
+                      <v-icon>mdi-heart</v-icon>
+                    </v-btn>
+              
+                    <v-btn icon>
+                      <v-icon>mdi-dots-vertical</v-icon>
+                    </v-btn> -->
+                  </v-toolbar>
+
+                  
                 <v-container class="mt-15">
                     <v-row class="d-flex justify-center" no-gutters>
-                        <v-col cols="12" sm="5" class="mr-10">
+                        <v-col cols="12" sm="4" class="mr-10">
                             <v-text-field v-model="logName" label="Log Data Extension" placeholder="Enter Data Extension Name" class="d-flex align-center" outlined></v-text-field>
                             <small class="mt-n20" v-if="error.logName.active">{{error.logName.msg}}</small>
                         </v-col>
                         <v-col cols="12" sm="6" class="d-flex align-start">
-                            <v-checkbox v-model="poll" :label="`Watch Log (${countDown})`" class="mb-n10 mr-8"></v-checkbox>
-                            <v-checkbox v-model="formatLog" label="Format Log Message" class=""></v-checkbox>
+                            <v-checkbox v-if="settings.showCountdown" v-model="poll" :label="`Watch Log (${countDown})`" class="mb-n10 mr-8"></v-checkbox>
+                            <v-checkbox v-else v-model="poll" :label="`Watch Log`" class="mb-n10 mr-8"></v-checkbox>
+                        </v-col>
+                        <v-col cols="12" sm="1">
+                            <div class="text-center">
+                                <v-menu v-model="viewSettings" :close-on-content-click="false" :nudge-width="200" left offset-x>
+                                    <template v-slot:activator="{ on, attrs }">
+                                    <v-btn
+                                    v-bind="attrs"
+                                    v-on="on">
+                                        <v-icon>mdi-cog-outline</v-icon>
+                                    </v-btn>
+                                        
+                                  </template>
+
+                                    <v-card>
+                                        <v-list>
+                                            <v-list-item>
+                                                <v-list-item-content>
+                                                    <v-list-item-title>Configurations</v-list-item-title>
+                                                </v-list-item-content>
+                                            </v-list-item>
+                                        </v-list>
+
+                                        <v-divider></v-divider>
+
+                                        <v-list>
+                                            <v-list-item>
+                                                <v-list-item-title>Log Refresh</v-list-item-title>
+                                                <v-list-item-action class="text-center">
+                                                    <v-text-field v-model="settings.countDownDefault"></v-text-field>
+                                                </v-list-item-action>
+                                            </v-list-item>
+
+                                            <v-list-item>
+                                                <v-list-item-title>Refresh Timeout</v-list-item-title>
+                                                <v-list-item-action class="text-center">
+                                                    <v-text-field v-model="settings.stopCountDownInDefault"></v-text-field>
+                                                </v-list-item-action>
+                                            </v-list-item>
+
+                                            <v-list-item>
+                                                <v-list-item-title>Format Log</v-list-item-title>
+                                                <v-list-item-action>
+                                                    <v-switch v-model="settings.formatLog" color="blue"></v-switch>
+                                                </v-list-item-action>
+                                            </v-list-item>
+
+                                            <v-list-item>
+                                                <v-list-item-title>Show Coutdown</v-list-item-title>
+                                                <v-list-item-action>
+                                                    <v-switch v-model="settings.showCountdown" color="blue"></v-switch>
+                                                </v-list-item-action>
+                                            </v-list-item>
+
+                                        </v-list>
+
+                                        <v-card-actions>
+                                            <v-spacer></v-spacer>
+
+                                            <v-btn text @click="viewSettings = false">
+                                                Close
+                                            </v-btn>
+                                        </v-card-actions>
+                                    </v-card>
+                                </v-menu>
+                            </div>
                         </v-col>
                     </v-row>
 
@@ -29,27 +176,27 @@
                         <v-col col="12" class="blue-grey lighten-5 p-5">
                             <v-simple-table fixed-header height="65vh">
                                 <template v-slot:default>
-                              <thead>
-                                <tr>
-                                  <th col="12" sm="3" v-for="field in table.fields" :key="field" class="text-left">
-                                    {{field}}
-                                  </th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                <tr
-                                  v-for="(item, index) in log"
-                                  :key="index"
-                                >
-                                  <td col="12" sm="3">{{ item.timestamp }}</td>
-                                  <td col="12" sm="3">{{ item.action }}</td>
-                                  <td col="12" sm="6">
-                                      <pre v-if="formatLog">{{ item.log }}</pre>
-                                      <span v-else>{{item.log}}</span>
-                                    </td>
-                                </tr>
-                              </tbody>
-                            </template>
+                               <thead>
+                                 <tr>
+                                   <th col="12" sm="3" v-for="field in table.fields" :key="field" class="text-left">
+                                     {{field}}
+                                   </th>
+                                 </tr>
+                               </thead>
+                               <tbody>
+                                 <tr
+                                   v-for="(item, index) in log"
+                                   :key="index"
+                                 >
+                                   <td col="12" sm="3">{{ item.timestamp }}</td>
+                                   <td col="12" sm="3">{{ item.action }}</td>
+                                   <td col="12" sm="6">
+                                       <pre v-if="settings.formatLog">{{ item.log }}</pre>
+                                       <span v-else>{{item.log}}</span>
+                                     </td>
+                                 </tr>
+                               </tbody>
+                             </template>
                             </v-simple-table>
                         </v-col>
                     </v-row>
@@ -66,15 +213,24 @@
             el: '#app',
             vuetify: new Vuetify(),
             data: {
-                codeResource: '',
+                codeResource: 'https://mc1q10jrzwsds3bcgk0jjz2s8h80.pub.sfmc-content.com/0ekuwawufhr',
                 poll: false,
-                formatLog: true,
+                drawer: false,
+                viewSettings: false,
+                viewMenu: false,
+                settings: {
+                    countDownDefault: 30,
+                    automationCountDownDefault: 3600,
+                    stopCountDownInDefault: 10,
+                    formatLog: true,
+                    showCountdown: true
+                },
                 countDown: 2,
-                countDownDefault: 30,
+                automationCountDown: 3600,
                 stopCountDownIn: 0,
                 previousTotal: 0,
                 table: {
-                    fields: ['timestamp', 'action', 'log']
+                    fields: []
                 },
                 logName: '',
                 log: [],
@@ -91,6 +247,14 @@
                         if (value === 1) {
                             this.updateLog()
                         }
+                    },
+                    automationCountDown: {
+                        handler(value) {
+                            if (value === 1 && this.poll === false) {
+                                this.poll === true;
+                                this.automationCountDownTimer()
+                            }
+                        }
                     }
                 },
                 poll: {
@@ -99,12 +263,16 @@
                             if (this.logName.length > 0) {
                                 this.error.logName.active = false;
                                 this.countDownTimer()
+                                this.automationCountDownTimer()
                             } else {
+
                                 this.error.logName.active = true;
                                 this.poll = false;
-                                this.countDown = this.countDownDefault;
+                                this.countDown = this.settings.countDownDefault;
                             }
                         }
+
+                        this.automationCountDownTimer()
                     }
                 }
             },
@@ -117,21 +285,45 @@
                                 this.countDownTimer()
                             }, 1000)
                         } else {
-                            this.countDown = this.countDownDefault;
+                            this.countDown = this.settings.countDownDefault;
                             this.countDownTimer()
                         }
                     }
                 },
+                automationCountDownTimer() {
+                    if (this.poll) {
+                        if (this.automationCountDown > 0) {
+                            setTimeout(() => {
+                                this.automationCountDown -= 1
+                                this.automationCountDownTimer()
+                            }, 1000)
+                        } else {
+                            this.automationCountDown = this.settings.settings.automationCountDownDefault;
+                            this.automationCountDownTimer()
+                        }
+                    }
+                },
+                isolateHeaders: async function(obj) {
+                    const headers = [];
+                    for (o in obj) {
+                        const key = o;
+                        headers.push(key)
+                    }
+                    return headers
+                },
                 updateLog: async function() {
                     try {
-                        const resp = await axios.get(`${this.codeResource}?log=${this.logName}&int=${this.countDownDefault}`)
+                        const resp = await axios.get(`${this.codeResource}?log=${this.logName}&int=${this.settings.countDownDefault}`)
                         console.log(resp.data)
                         let holdLog;
 
+                        const headers = await isolateHeaders(resp.data[0])
+                        this.table.fields = headers;
+
                         if (this.previousTotal === resp.data.length) {
-                            if (this.stopCountDownIn === 10) {
+                            if (this.stopCountDownIn === this.settings.stopCountDownInDefault) {
                                 this.poll = false;
-                                this.countDown = this.countDownDefault;
+                                this.countDown = this.settings.countDownDefault;
                                 this.stopCountDownIn = 0;
                             } else {
                                 this.stopCountDownIn += 1
@@ -143,14 +335,11 @@
                             holdLog = [...resp.data]
                         }
 
-
-
                         this.log = holdLog.sort(function(a, b) {
                             // Turn your strings into dates, and then subtract them
                             // to get a value that is either negative, positive, or zero.
                             return new Date(b.timestamp) - new Date(a.timestamp);
                         });
-
 
 
                     } catch (err) {
