@@ -1,5 +1,6 @@
 <script runat='server'>
 Platform.Load("core", "1.1")
+var log = Platform.Request.GetQueryStringParameter('log')
 
 if (log === null || typeof log === 'undefined') {
     response('Log Data Extension is required')
