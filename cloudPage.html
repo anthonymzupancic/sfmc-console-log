@@ -22,7 +22,7 @@ TODO:
             <v-main>
                 <v-toolbar dense>
                     <!-- <v-app-bar-nav-icon></v-app-bar-nav-icon> -->
-                    <v-menu v-model="viewMenu" :close-on-content-click="false" :nudge-width="200" right offset-x offset-y>
+                    <!-- <v-menu v-model="viewMenu" :close-on-content-click="false" :nudge-width="200" right offset-x offset-y>
                         <template v-slot:activator="{ on, attrs }">
                         <div
                         v-bind="attrs"
@@ -30,12 +30,9 @@ TODO:
                         class="mr-5">
                         <v-icon v-if="viewMenu">mdi-chevron-down</v-icon>
                         <v-icon v-else>mdi-menu</v-icon>
-
-                            
                         </div>
                             
                       </template>
-
                         <v-card>
                             <v-list>
                                 <v-list-item>
@@ -51,21 +48,6 @@ TODO:
                                         <v-text-field v-model="settings.stopCountDownInDefault"></v-text-field>
                                     </v-list-item-action>
                                 </v-list-item>
-
-                                <v-list-item>
-                                    <v-list-item-title>Format Log</v-list-item-title>
-                                    <v-list-item-action>
-                                        <v-switch v-model="settings.formatLog" color="blue"></v-switch>
-                                    </v-list-item-action>
-                                </v-list-item>
-
-                                <v-list-item>
-                                    <v-list-item-title>Show Coutdown</v-list-item-title>
-                                    <v-list-item-action>
-                                        <v-switch v-model="settings.showCountdown" color="blue"></v-switch>
-                                    </v-list-item-action>
-                                </v-list-item>
-
                             </v-list>
 
                             <v-card-actions>
@@ -76,7 +58,7 @@ TODO:
                                 </v-btn>
                             </v-card-actions>
                         </v-card>
-                    </v-menu>
+                    </v-menu> -->
                     <v-toolbar-title>[SFMC] console.log</v-toolbar-title>
               
                     <v-spacer></v-spacer>
