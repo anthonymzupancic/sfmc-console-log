@@ -31,10 +31,10 @@ The `deBug` function serves two debugging purposes; the first is adding to the l
  *   function deBug()
  *   Writes responses and outputs to cloudpage for debugging code
  *
- *    @peram action {String} Identifier for what is being debugged
- *    @peram response {Object} Output/Response to Stringify and Write
- *    @peram logExtKey {String} External Key of Logging Data Extension
- *    @peram debug {Number} toggles debugging function to write values to cloudpage
+ *    @param action {String} Identifier for what is being debugged
+ *    @param response {Object} Output/Response to Stringify and Write
+ *    @param logExtKey {String} External Key of Logging Data Extension
+ *    @param debug {Number} toggles debugging function to write values to cloudpage
  *    @return Debugging Identifier, Stringified Response, line breaks around output
  *
  ***********************************************/
@@ -61,8 +61,8 @@ function deBug(action, response, logExtKey, debug) {
  *   function addLog()
  *   Pushes logging object to array to be written to a Data Extension
  *   
- *    @peram obj {Object} logging object that matches the data extension
- *    @peram logExtKey {String} External Key to log records to
+ *    @param obj {Object} logging object that matches the data extension
+ *    @param logExtKey {String} External Key to log records to
  *    
  ***********************************************/
 function addLog(obj, logExtKey) {
@@ -76,7 +76,7 @@ function addLog(obj, logExtKey) {
  * function getDataExtensionKey()
  * Retieves the External Key for a SFMC Data Extension
  * 
- * @peram name {String} Name of the data extension
+ * @param name {String} Name of the data extension
  * @return {string} External Key of data extension
  * 
  */

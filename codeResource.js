@@ -97,8 +97,8 @@ function wsRead(logKey) {
  *   Takes Objects that are Name/Value pairs {Name: "Key", Value: "Value"} and
  *   normalizes them to a standard JSON object {key: "value"}
  *
- *    @peram {arr} array to normalize
- *    @peram {prop} property key of Array
+ *    @param {arr} array to normalize
+ *    @param {prop} property key of Array
  *
  *    @output Array of normalized JSON object
  *
@@ -125,7 +125,7 @@ function formatResult(arr, prop) {
  *   function getFieldNames()
  *   Gets all columns from a SOAP Object
  *
- *    @peram {deName} Name of DataExtension to get columns
+ *    @param {deName} Name of DataExtension to get columns
  *
  *    @output {array} array of fields
  *
