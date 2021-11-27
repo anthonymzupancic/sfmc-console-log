@@ -15,14 +15,23 @@ TODO:
     <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
 </head>
+<style>
+    .link-reset, .link-icon {
+        text-decoration:none;
+    }
 
+    .link-reset:hover {
+        text-decoration: underline;
+        text-decoration-color: dimgrey;
+    }
+</style>
 <body>
     <div id="app">
         <v-app>
             <v-main>
                 <v-toolbar dense>
                     <!-- <v-app-bar-nav-icon></v-app-bar-nav-icon> -->
-                    <!-- <v-menu v-model="viewMenu" :close-on-content-click="false" :nudge-width="200" right offset-x offset-y>
+                    <v-menu v-model="viewMenu" :close-on-content-click="false" :nudge-width="200" right offset-x offset-y>
                         <template v-slot:activator="{ on, attrs }">
                         <div
                         v-bind="attrs"
@@ -35,30 +44,38 @@ TODO:
                       </template>
                         <v-card>
                             <v-list>
-                                <v-list-item>
+                                <v-list-item @click="viewCreateDataExtension = !viewCreateDataExtension">
                                     <v-list-item-title>Create Data Extension</v-list-item-title>
                                     <v-list-item-action class="text-center">
-                                        <v-text-field v-model="settings.countDownDefault"></v-text-field>
+                                        <v-icon>mdi-table-plus</v-icon>
+                                    </v-list-item-action>
+                                </v-list-item>
+                                <v-list-item  v-if="viewCreateDataExtension">
+                                    <v-text-field v-model="createDataExtensionName" label="Log Data Extension Name" placeholder="Enter Name" class="d-flex align-center"></v-text-field>
+                                    <v-list-item-action class="text-center">
+                                        <v-icon @click="createLoggingDataExtension">mdi-plus</v-icon>
                                     </v-list-item-action>
                                 </v-list-item>
 
-                                <v-list-item>
-                                    <v-list-item-title>View Logging Function</v-list-item-title>
-                                    <v-list-item-action class="text-center">
-                                        <v-text-field v-model="settings.stopCountDownInDefault"></v-text-field>
-                                    </v-list-item-action>
-                                </v-list-item>
+                                <a href="https://github.com/anthonymzupancic/sfmc-console-log" target="_blank" class="link-reset">
+                                    <v-list-item>
+                                        <v-list-item-title>Documentation</v-list-item-title>
+                                        <v-list-item-action class="text-center">
+                                            <v-icon>mdi-github</v-icon>
+                                        </v-list-item-action>
+                                    </v-list-item>
+                                </a>
                             </v-list>
 
                             <v-card-actions>
                                 <v-spacer></v-spacer>
 
-                                <v-btn text @click="viewSettings = false">
+                                <v-btn text @click="viewMenu = false">
                                     Close
                                 </v-btn>
                             </v-card-actions>
                         </v-card>
-                    </v-menu> -->
+                    </v-menu> 
                     <v-toolbar-title>[SFMC] console.log</v-toolbar-title>
               
                     <v-spacer></v-spacer>
@@ -183,6 +200,23 @@ TODO:
                         </v-col>
                     </v-row>
                 </v-container>
+                <v-snackbar
+                    v-model="snackbar"
+                    :timeout="snackbarTimeout"
+                    >
+                    {{ snackbarText }}
+
+                    <template v-slot:action="{ attrs }">
+                        <v-btn
+                        color="blue"
+                        text
+                        v-bind="attrs"
+                        @click="snackbar = false"
+                        >
+                        Close
+                        </v-btn>
+                    </template>
+                    </v-snackbar>
             </v-main>
         </v-app>
     </div>
@@ -200,6 +234,11 @@ TODO:
                 drawer: false,
                 viewSettings: false,
                 viewMenu: false,
+                viewCreateDataExtension: false,
+                createDataExtensionName: '',
+                snackbar: false,
+                snackbarText: '',
+                snackbarTimeout: 2000,
                 settings: {
                     countDownDefault: 30,
                     automationCountDownDefault: 3600,
@@ -293,13 +332,37 @@ TODO:
                     }
                     return headers
                 },
+                createLoggingDataExtension: async function() {
+                    try {
+
+                        if(!this.createDataExtensionName){
+                            this.snackbarText = `Data Extension Name is Required.`
+                            this.snackbar = true
+                            return
+                        }
+                        
+                        const resp = await axios.get(`${this.codeResource}?deName=${this.createDataExtensionName}&route=createDataExtension`)
+                        
+                        if(resp.data.Status === "OK"){
+                            this.snackbarText = `${this.createDataExtensionName} has been created.`
+                            this.snackbar = true
+                        } else {
+                            this.snackbarText = `${this.createDataExtensionName} was not created.`
+                            this.snackbar = true
+                        }
+                        
+                        console.log(resp)
+                    } catch (err) {
+                        console.log(err)
+                    }
+                },
                 updateLog: async function() {
                     try {
-                        const resp = await axios.get(`${this.codeResource}?log=${this.logName}&int=${this.settings.countDownDefault}`)
+                        const resp = await axios.get(`${this.codeResource}?log=${this.logName}&route=getLog`)
                         console.log(resp.data)
                         let holdLog;
 
-                        const headers = await isolateHeaders(resp.data[0])
+                        const headers = await this.isolateHeaders(resp.data[0])
                         this.table.fields = headers;
 
                         if (this.previousTotal === resp.data.length) {

@@ -1,15 +1,59 @@
 <script runat='server'>
 Platform.Load("core", "1.1")
+
 var log = Platform.Request.GetQueryStringParameter('log')
+var deName = Platform.Request.GetQueryStringParameter('deName')
+var route = Platform.Request.GetQueryStringParameter('route')
 
-if (log === null || typeof log === 'undefined') {
-    response('Log Data Extension is required')
-} else {
-    var logDE = DataExtension.Retrieve({ Property: "Name", SimpleOperator: "equals", Value: log });
-    var logKey = logDE[0].CustomerKey;
+switch (route) {
 
-    var data = wsRead(logKey);
-    response(data)
+case 'getLog':
+    if (log === null || typeof log === 'undefined') {
+        response('Log Data Extension is required')
+    } else {
+        var logDE = DataExtension.Retrieve({ Property: "Name", SimpleOperator: "equals", Value: log });
+        var logKey = logDE[0].CustomerKey;
+
+        var data = wsRead(logKey);
+        response(data)
+    }
+break;
+
+case 'createDataExtension':
+    var api = new Script.Util.WSProxy();
+    
+    var fields = [
+        {
+            "Name": "timestamp",
+            "FieldType": "Date",
+            "DefaultValue": "GETDATE()",
+            "IsRequired": false
+        },
+        {
+            "Name": "action",
+            "FieldType": "Text",
+            "MaxLength": 250,
+            "IsRequired": false
+        }, 
+        {
+            "Name": "log",
+            "FieldType": "text",
+            "IsRequired": false
+        }
+    ];
+
+    var config = {
+        "CustomerKey": String(Platform.Function.GUID()).toUpperCase(),
+        "Name": deName,
+        "CategoryID": 0,
+        "Fields": fields
+    };
+
+    var result = api.createItem("DataExtension", config); 
+
+    response(result)
+break;
+
 }
 
 function wsRead(logKey) {
