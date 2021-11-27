@@ -229,7 +229,7 @@ TODO:
             el: '#app',
             vuetify: new Vuetify(),
             data: {
-                codeResource: 'https://mc1q10jrzwsds3bcgk0jjz2s8h80.pub.sfmc-content.com/0ekuwawufhr',
+                codeResource: '',
                 poll: false,
                 drawer: false,
                 viewSettings: false,
@@ -340,7 +340,7 @@ TODO:
                             this.snackbar = true
                             return
                         }
-                        
+
                         const resp = await axios.get(`${this.codeResource}?deName=${this.createDataExtensionName}&route=createDataExtension`)
                         
                         if(resp.data.Status === "OK"){
