@@ -5,6 +5,8 @@ Even though rows are added to the data extension, to see the records as the scri
 
 With this CloudPage and Code Resource, you can pull all recent rows from your logging data extension on a set interval and refresh your display.
 
+In addition, you can create a logging data extension directly from the page.
+
 
 ## requirements
 
