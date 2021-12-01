@@ -95,11 +95,11 @@ TODO:
                    
                  <v-container class="mt-15">
                      <v-row class="d-flex justify-space-between" no-gutters>
-                         <v-col v-if="settings.watchAutomation" cols="12" sm="5" class="mr-10">
+                         <v-col v-if="settings.watchAutomation" cols="12" sm="4" class="mr-10">
                              <v-text-field v-model="automationName" label="Watch Automation" placeholder="Enter Data Extension Name" outlined validate-on-blur dense></v-text-field>
                              <!-- <small v-if="error.logName.active">{{error.logName.msg}}</small> -->
                          </v-col>
-                         <v-col cols="12" sm="5" class="mr-10">
+                         <v-col cols="12" sm="4" class="mr-10">
                              <v-text-field v-model="logName" label="Logging Data Extension" placeholder="Enter Data Extension Name" outlined dense></v-text-field>
                              <!-- <small v-if="error.logName.active">{{error.logName.msg}}</small> -->
                          </v-col>
@@ -133,32 +133,32 @@ TODO:
                                                      <v-text-field v-model="settings.countDownDefault"></v-text-field>
                                                  </v-list-item-action>
                                              </v-list-item>
+
+                                             <v-list-item class="mt-n3">
+                                                <v-list-item-title>Automation Refresh</v-list-item-title>
+                                                <v-list-item-action class="text-center">
+                                                    <v-text-field v-model="settings.automationCountDownDefault"></v-text-field>
+                                                </v-list-item-action>
+                                            </v-list-item>
  
-                                             <v-list-item>
+                                             <v-list-item class="mt-n3">
                                                  <v-list-item-title>Refresh Timeout</v-list-item-title>
                                                  <v-list-item-action class="text-center">
                                                      <v-text-field v-model="settings.stopCountDownInDefault"></v-text-field>
                                                  </v-list-item-action>
                                              </v-list-item>
  
-                                             <v-list-item>
+                                             <v-list-item class="mt-n3">
                                                  <v-list-item-title>Watch Automation</v-list-item-title>
                                                  <v-list-item-action>
                                                      <v-switch v-model="settings.watchAutomation" color="blue"></v-switch>
                                                  </v-list-item-action>
                                              </v-list-item>
  
-                                             <v-list-item>
+                                             <v-list-item class="mt-n3">
                                                  <v-list-item-title>Format Log</v-list-item-title>
                                                  <v-list-item-action>
                                                      <v-switch v-model="settings.formatLog" color="blue"></v-switch>
-                                                 </v-list-item-action>
-                                             </v-list-item>
- 
-                                             <v-list-item>
-                                                 <v-list-item-title>Show Coutdown</v-list-item-title>
-                                                 <v-list-item-action>
-                                                     <v-switch v-model="settings.showCountdown" color="blue"></v-switch>
                                                  </v-list-item-action>
                                              </v-list-item>
  
@@ -203,17 +203,18 @@ TODO:
                                  outlined
                                  color="grey"
                                  class="mr-4"
+                                 @click="triggerRefresh"
                                  >
                                  <v-icon class="mr-4">mdi-refresh</v-icon> trigger refresh
                              </v-btn>
                          </v-col>
                      </v-row>
-                     <v-row v-show="pollAutomation" class="mt-n5">
+                     <v-row v-show="automationStatus" class="mt-n5">
                          <v-col
                             cols="12"
                             sm="4"
                         >
-                        <small v-show="automationStatus"><strong>Automation Status</strong> <br> {{automationStatus}} ({{automationStatusMessage}}) <v-icon class="ml-3 text-body-1" v-show="automationStatus !== 'Running'">mdi-play-box-outline</v-icon></small>
+                        <small><strong>Automation Status</strong> <br> {{automationStatus}} ({{automationStatusMessage}}) <v-icon class="ml-3 text-body-1" v-show="automationStatus !== 'Running'">mdi-play-box-outline</v-icon></small>
                         </v-col>
                      </v-row>
                      <v-row>
@@ -247,20 +248,10 @@ TODO:
                  </v-container>
                  <v-snackbar
                      v-model="snackbar"
+                     class="text-center"
                      :timeout="snackbarTimeout"
                      >
                      {{ snackbarText }}
- 
-                     <template v-slot:action="{ attrs }">
-                         <v-btn
-                         color="blue"
-                         text
-                         v-bind="attrs"
-                         @click="snackbar = false"
-                         >
-                         Close
-                         </v-btn>
-                     </template>
                      </v-snackbar>
              </v-main>
          </v-app>
@@ -275,6 +266,7 @@ TODO:
              vuetify: new Vuetify(),
              data: {
                  codeResource: '',
+                 processing: false,
                  pollDataExtension: false,
                  pollAutomation: false,
                  viewSettings: false,
@@ -308,6 +300,10 @@ TODO:
                      logName: {
                          active: false,
                          msg: 'Logging Data Extension Name Required.'
+                     },
+                     automationName: {
+                         active: false,
+                         msg: 'Automation Name Required.'
                      }
                  },
                  rules: {
@@ -337,7 +333,18 @@ TODO:
                  pollAutomation: {
                    handler(value) {
                       if(value === true){
-                        this.automationCountDownTimer()
+                        if (this.automationName.length > 0) {
+                            this.error.automationName.active = false;
+                            this.automationCountDownTimer()
+                        } else {
+                            this.error.automationName.active = true;
+                            this.pollAutomation = false;
+                            this.automationCountDown = this.settings.automationCountDownDefault
+
+                            this.snackbarText = `${this.error.automationName.msg}`
+                            this.snackbar = true
+                        }
+                        
                       } else {
                         this.pollAutomation = false;
                       }
@@ -353,12 +360,19 @@ TODO:
                                  this.error.logName.active = true;
                                  this.pollDataExtension = false;
                                  this.countDown = this.settings.countDownDefault;
+
+                                this.snackbarText = `${this.error.logName.msg}`
+                                this.snackbar = true
                              }
                          }
                      }
                  }
              },
              methods: {
+                 triggerRefresh() {
+                    this.updateAutomationStatus();
+                    this.updateLog();
+                 },
                  countDownTimer() {
                      if (this.pollDataExtension) {
                          if (this.countDown > 0) {
