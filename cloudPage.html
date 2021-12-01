@@ -2,398 +2,520 @@
 TODO:   
     - automation watch - check every 1 - 2 minutes and auto toggle calls when running
     - manual trigger for read call
-    - create logging data extension
     - display logging/debug function to include in script to log
  -->
-<!DOCTYPE html>
-<html>
-
-<head>
-    <title>Welcome to SFMC Console Log</title>
-    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
-</head>
-<style>
-    .link-reset, .link-icon {
-        text-decoration:none;
-    }
-
-    .link-reset:hover {
-        text-decoration: underline;
-        text-decoration-color: dimgrey;
-    }
-</style>
-<body>
-    <div id="app">
-        <v-app>
-            <v-main>
-                <v-toolbar dense>
-                    <!-- <v-app-bar-nav-icon></v-app-bar-nav-icon> -->
-                    <v-menu v-model="viewMenu" :close-on-content-click="false" :nudge-width="200" right offset-x offset-y>
-                        <template v-slot:activator="{ on, attrs }">
-                        <div
-                        v-bind="attrs"
-                        v-on="on"
-                        class="mr-5">
-                        <v-icon v-if="viewMenu">mdi-chevron-down</v-icon>
-                        <v-icon v-else>mdi-menu</v-icon>
-                        </div>
-                            
-                      </template>
-                        <v-card>
-                            <v-list>
-                                <v-list-item @click="viewCreateDataExtension = !viewCreateDataExtension">
-                                    <v-list-item-title>Create Data Extension</v-list-item-title>
-                                    <v-list-item-action class="text-center">
-                                        <v-icon>mdi-table-plus</v-icon>
-                                    </v-list-item-action>
-                                </v-list-item>
-                                <v-list-item  v-if="viewCreateDataExtension">
-                                    <v-text-field v-model="createDataExtensionName" label="Log Data Extension Name" placeholder="Enter Name" class="d-flex align-center"></v-text-field>
-                                    <v-list-item-action class="text-center">
-                                        <v-icon @click="createLoggingDataExtension">mdi-plus</v-icon>
-                                    </v-list-item-action>
-                                </v-list-item>
-
-                                <a href="https://github.com/anthonymzupancic/sfmc-console-log" target="_blank" class="link-reset">
-                                    <v-list-item>
-                                        <v-list-item-title>Documentation</v-list-item-title>
-                                        <v-list-item-action class="text-center">
-                                            <v-icon>mdi-github</v-icon>
-                                        </v-list-item-action>
-                                    </v-list-item>
-                                </a>
-                            </v-list>
-
-                            <v-card-actions>
-                                <v-spacer></v-spacer>
-
-                                <v-btn text @click="viewMenu = false">
-                                    Close
-                                </v-btn>
-                            </v-card-actions>
-                        </v-card>
-                    </v-menu> 
-                    <v-toolbar-title>[SFMC] console.log</v-toolbar-title>
-              
-                    <v-spacer></v-spacer>
-              
-                    <!-- <v-btn icon>
-                      <v-icon>mdi-magnify</v-icon>
-                    </v-btn>
-              
-                    <v-btn icon>
-                      <v-icon>mdi-heart</v-icon>
-                    </v-btn>
-              
-                    <v-btn icon>
-                      <v-icon>mdi-dots-vertical</v-icon>
-                    </v-btn> -->
-                  </v-toolbar>
-
-                  
-                <v-container class="mt-15">
-                    <v-row class="d-flex justify-center" no-gutters>
-                        <v-col cols="12" sm="4" class="mr-10">
-                            <v-text-field v-model="logName" label="Log Data Extension" placeholder="Enter Data Extension Name" class="d-flex align-center" outlined></v-text-field>
-                            <small class="mt-n20" v-if="error.logName.active">{{error.logName.msg}}</small>
-                        </v-col>
-                        <v-col cols="12" sm="6" class="d-flex align-start">
-                            <v-checkbox v-if="settings.showCountdown" v-model="poll" :label="`Watch Log (${countDown})`" class="mb-n10 mr-8"></v-checkbox>
-                            <v-checkbox v-else v-model="poll" :label="`Watch Log`" class="mb-n10 mr-8"></v-checkbox>
-                        </v-col>
-                        <v-col cols="12" sm="1">
-                            <div class="text-center">
-                                <v-menu v-model="viewSettings" :close-on-content-click="false" :nudge-width="200" left offset-x>
-                                    <template v-slot:activator="{ on, attrs }">
-                                    <v-btn
-                                    v-bind="attrs"
-                                    v-on="on">
-                                        <v-icon>mdi-cog-outline</v-icon>
-                                    </v-btn>
-                                        
-                                  </template>
-
-                                    <v-card>
-                                        <v-list>
-                                            <v-list-item>
-                                                <v-list-item-content>
-                                                    <v-list-item-title>Configurations</v-list-item-title>
-                                                </v-list-item-content>
-                                            </v-list-item>
-                                        </v-list>
-
-                                        <v-divider></v-divider>
-
-                                        <v-list>
-                                            <v-list-item>
-                                                <v-list-item-title>Log Refresh</v-list-item-title>
-                                                <v-list-item-action class="text-center">
-                                                    <v-text-field v-model="settings.countDownDefault"></v-text-field>
-                                                </v-list-item-action>
-                                            </v-list-item>
-
-                                            <v-list-item>
-                                                <v-list-item-title>Refresh Timeout</v-list-item-title>
-                                                <v-list-item-action class="text-center">
-                                                    <v-text-field v-model="settings.stopCountDownInDefault"></v-text-field>
-                                                </v-list-item-action>
-                                            </v-list-item>
-
-                                            <v-list-item>
-                                                <v-list-item-title>Format Log</v-list-item-title>
-                                                <v-list-item-action>
-                                                    <v-switch v-model="settings.formatLog" color="blue"></v-switch>
-                                                </v-list-item-action>
-                                            </v-list-item>
-
-                                            <v-list-item>
-                                                <v-list-item-title>Show Coutdown</v-list-item-title>
-                                                <v-list-item-action>
-                                                    <v-switch v-model="settings.showCountdown" color="blue"></v-switch>
-                                                </v-list-item-action>
-                                            </v-list-item>
-
-                                        </v-list>
-
-                                        <v-card-actions>
-                                            <v-spacer></v-spacer>
-
-                                            <v-btn text @click="viewSettings = false">
-                                                Close
-                                            </v-btn>
-                                        </v-card-actions>
-                                    </v-card>
-                                </v-menu>
-                            </div>
-                        </v-col>
-                    </v-row>
-
-                    <v-row>
-                        <v-col col="12" class="blue-grey lighten-5 p-5">
-                            <v-simple-table fixed-header height="65vh">
-                                <template v-slot:default>
-                               <thead>
-                                 <tr>
-                                   <th col="12" sm="3" v-for="field in table.fields" :key="field" class="text-left">
-                                     {{field}}
-                                   </th>
-                                 </tr>
-                               </thead>
-                               <tbody>
-                                 <tr
-                                   v-for="(item, index) in log"
-                                   :key="index"
+ <!DOCTYPE html>
+ <html>
+ 
+ <head>
+     <title>Welcome to SFMC Console Log</title>
+     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+     <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
+     <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+ </head>
+ <style>
+     .link-reset, .link-icon {
+         text-decoration:none;
+     }
+ 
+     .link-reset:hover {
+         text-decoration: underline;
+         text-decoration-color: dimgrey;
+     }
+ </style>
+ <body>
+     <div id="app">
+         <v-app>
+             <v-main>
+                 <v-toolbar dense>
+                     <!-- <v-app-bar-nav-icon></v-app-bar-nav-icon> -->
+                     <v-menu v-model="viewMenu" :close-on-content-click="false" :nudge-width="200" right offset-x offset-y>
+                         <template v-slot:activator="{ on, attrs }">
+                         <div
+                         v-bind="attrs"
+                         v-on="on"
+                         class="mr-5">
+                         <v-icon v-if="viewMenu">mdi-chevron-down</v-icon>
+                         <v-icon v-else>mdi-menu</v-icon>
+                         </div>
+                             
+                       </template>
+                         <v-card>
+                             <v-list>
+                                 <v-list-item @click="viewCreateDataExtension = !viewCreateDataExtension">
+                                     <v-list-item-title>Create Data Extension</v-list-item-title>
+                                     <v-list-item-action class="text-center">
+                                         <v-icon>mdi-table-plus</v-icon>
+                                     </v-list-item-action>
+                                 </v-list-item>
+                                 <v-list-item  v-if="viewCreateDataExtension">
+                                     <v-text-field v-model="createDataExtensionName" label="Log Data Extension Name" placeholder="Enter Name" class="d-flex align-center"></v-text-field>
+                                     <v-list-item-action class="text-center">
+                                         <v-icon @click="createLoggingDataExtension">mdi-plus</v-icon>
+                                     </v-list-item-action>
+                                 </v-list-item>
+ 
+                                 <a href="https://github.com/anthonymzupancic/sfmc-console-log" target="_blank" class="link-reset">
+                                     <v-list-item>
+                                         <v-list-item-title>Documentation</v-list-item-title>
+                                         <v-list-item-action class="text-center">
+                                             <v-icon>mdi-github</v-icon>
+                                         </v-list-item-action>
+                                     </v-list-item>
+                                 </a>
+                             </v-list>
+ 
+                             <v-card-actions>
+                                 <v-spacer></v-spacer>
+ 
+                                 <v-btn text @click="viewMenu = false">
+                                     Close
+                                 </v-btn>
+                             </v-card-actions>
+                         </v-card>
+                     </v-menu> 
+                     <v-toolbar-title>[SFMC] console.log</v-toolbar-title>
+               
+                     <v-spacer></v-spacer>
+               
+                     <!-- <v-btn icon>
+                       <v-icon>mdi-magnify</v-icon>
+                     </v-btn>
+               
+                     <v-btn icon>
+                       <v-icon>mdi-heart</v-icon>
+                     </v-btn>
+               
+                     <v-btn icon>
+                       <v-icon>mdi-dots-vertical</v-icon>
+                     </v-btn> -->
+                   </v-toolbar>
+ 
+                   
+                 <v-container class="mt-15">
+                     <v-row class="d-flex justify-space-between" no-gutters>
+                         <v-col v-if="settings.watchAutomation" cols="12" sm="5" class="mr-10">
+                             <v-text-field v-model="automationName" label="Watch Automation" placeholder="Enter Data Extension Name" outlined validate-on-blur dense></v-text-field>
+                             <!-- <small v-if="error.logName.active">{{error.logName.msg}}</small> -->
+                         </v-col>
+                         <v-col cols="12" sm="5" class="mr-10">
+                             <v-text-field v-model="logName" label="Logging Data Extension" placeholder="Enter Data Extension Name" outlined dense></v-text-field>
+                             <!-- <small v-if="error.logName.active">{{error.logName.msg}}</small> -->
+                         </v-col>
+                         <v-col cols="12" sm="1">
+                             <div class="text-center">
+                                 <v-menu v-model="viewSettings" :close-on-content-click="false" :nudge-width="200" left offset-x>
+                                     <template v-slot:activator="{ on, attrs }">
+                                     <v-btn
+                                     v-bind="attrs"
+                                     v-on="on">
+                                         <v-icon>mdi-cog-outline</v-icon>
+                                     </v-btn>
+                                         
+                                   </template>
+ 
+                                     <v-card>
+                                         <v-list>
+                                             <v-list-item>
+                                                 <v-list-item-content>
+                                                     <v-list-item-title>Configurations</v-list-item-title>
+                                                 </v-list-item-content>
+                                             </v-list-item>
+                                         </v-list>
+ 
+                                         <v-divider></v-divider>
+ 
+                                         <v-list>
+                                             <v-list-item>
+                                                 <v-list-item-title>Log Refresh</v-list-item-title>
+                                                 <v-list-item-action class="text-center">
+                                                     <v-text-field v-model="settings.countDownDefault"></v-text-field>
+                                                 </v-list-item-action>
+                                             </v-list-item>
+ 
+                                             <v-list-item>
+                                                 <v-list-item-title>Refresh Timeout</v-list-item-title>
+                                                 <v-list-item-action class="text-center">
+                                                     <v-text-field v-model="settings.stopCountDownInDefault"></v-text-field>
+                                                 </v-list-item-action>
+                                             </v-list-item>
+ 
+                                             <v-list-item>
+                                                 <v-list-item-title>Watch Automation</v-list-item-title>
+                                                 <v-list-item-action>
+                                                     <v-switch v-model="settings.watchAutomation" color="blue"></v-switch>
+                                                 </v-list-item-action>
+                                             </v-list-item>
+ 
+                                             <v-list-item>
+                                                 <v-list-item-title>Format Log</v-list-item-title>
+                                                 <v-list-item-action>
+                                                     <v-switch v-model="settings.formatLog" color="blue"></v-switch>
+                                                 </v-list-item-action>
+                                             </v-list-item>
+ 
+                                             <v-list-item>
+                                                 <v-list-item-title>Show Coutdown</v-list-item-title>
+                                                 <v-list-item-action>
+                                                     <v-switch v-model="settings.showCountdown" color="blue"></v-switch>
+                                                 </v-list-item-action>
+                                             </v-list-item>
+ 
+                                         </v-list>
+ 
+                                         <v-card-actions>
+                                             <v-spacer></v-spacer>
+ 
+                                             <v-btn text @click="viewSettings = false">
+                                                 Close
+                                             </v-btn>
+                                         </v-card-actions>
+                                     </v-card>
+                                 </v-menu>
+                             </div>
+                         </v-col>
+                     </v-row>
+                     <v-row class="mt-n1 mb-4">
+                         <v-col cols="12" sm="6" class="d-flex align-start">
+                             <v-btn
+                                 outlined
+                                 color="grey"
+                                 @click="pollAutomation = !pollAutomation"
+                                 class="mr-4"
+                                 v-if="settings.watchAutomation" 
                                  >
-                                   <td col="12" sm="3">{{ item.timestamp }}</td>
-                                   <td col="12" sm="3">{{ item.action }}</td>
-                                   <td col="12" sm="6">
-                                       <pre v-if="settings.formatLog">{{ item.log }}</pre>
-                                       <span v-else>{{item.log}}</span>
-                                     </td>
-                                 </tr>
-                               </tbody>
-                             </template>
-                            </v-simple-table>
-                        </v-col>
-                    </v-row>
-                </v-container>
-                <v-snackbar
-                    v-model="snackbar"
-                    :timeout="snackbarTimeout"
-                    >
-                    {{ snackbarText }}
-
-                    <template v-slot:action="{ attrs }">
-                        <v-btn
-                        color="blue"
-                        text
-                        v-bind="attrs"
-                        @click="snackbar = false"
+                                 <v-icon v-if="!pollAutomation" class="mr-4">mdi-checkbox-blank-outline</v-icon> 
+                                 <v-icon v-else class="mr-4">mdi-checkbox-marked</v-icon>
+                                 watch automation
+                             </v-btn>
+                             <v-btn
+                                 outlined
+                                 color="grey"
+                                 @click="pollDataExtension = !pollDataExtension"
+                                 class="mr-4"
+                                 >
+                                 <v-icon v-if="!pollDataExtension" class="mr-4">mdi-checkbox-blank-outline</v-icon> 
+                                 <v-icon v-else class="mr-4">mdi-checkbox-marked</v-icon>
+                                 watch log
+                             </v-btn>
+                             <v-btn
+                                 outlined
+                                 color="grey"
+                                 class="mr-4"
+                                 >
+                                 <v-icon class="mr-4">mdi-refresh</v-icon> trigger refresh
+                             </v-btn>
+                         </v-col>
+                     </v-row>
+                     <v-row class="mt-n5">
+                         <v-col
+                            cols="12"
+                            sm="4"
                         >
-                        Close
-                        </v-btn>
-                    </template>
-                    </v-snackbar>
-            </v-main>
-        </v-app>
-    </div>
-
-
-    <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
-    <script>
-        var app = new Vue({
-            el: '#app',
-            vuetify: new Vuetify(),
-            data: {
-                codeResource: '',
-                poll: false,
-                drawer: false,
-                viewSettings: false,
-                viewMenu: false,
-                viewCreateDataExtension: false,
-                createDataExtensionName: '',
-                snackbar: false,
-                snackbarText: '',
-                snackbarTimeout: 2000,
-                settings: {
-                    countDownDefault: 30,
-                    automationCountDownDefault: 3600,
-                    stopCountDownInDefault: 10,
-                    formatLog: true,
-                    showCountdown: true
-                },
-                countDown: 2,
-                automationCountDown: 3600,
-                stopCountDownIn: 0,
-                previousTotal: 0,
-                table: {
-                    fields: []
-                },
-                logName: '',
-                log: [],
-                error: {
-                    logName: {
-                        active: false,
-                        msg: 'Logging Data Extension Name Required.'
-                    }
-                }
-            },
-            watch: {
-                countDown: {
-                    handler(value) {
-                        if (value === 1) {
-                            this.updateLog()
-                        }
-                    },
-                    automationCountDown: {
-                        handler(value) {
-                            if (value === 1 && this.poll === false) {
-                                this.poll === true;
-                                this.automationCountDownTimer()
-                            }
-                        }
-                    }
-                },
-                poll: {
-                    handler(value) {
-                        if (value === true) {
-                            if (this.logName.length > 0) {
-                                this.error.logName.active = false;
-                                this.countDownTimer()
-                                this.automationCountDownTimer()
-                            } else {
-
-                                this.error.logName.active = true;
-                                this.poll = false;
-                                this.countDown = this.settings.countDownDefault;
-                            }
-                        }
-
+                        
+                        <small v-show="automationStatus"><strong>Automation Status</strong> <br> {{automationStatus}} ({{automationStatusMessage}}) <v-icon class="ml-3 text-subtitle-1" v-show="automationStatus !== 'Running'">mdi-play-box-outline</v-icon></small>
+                        </v-col>
+                     </v-row>
+                     <v-row>
+                         <v-col col="12" class="blue-grey lighten-5 p-5">
+                             <v-simple-table fixed-header height="65vh">
+                                 <template v-slot:default>
+                                <thead>
+                                  <tr>
+                                    <th col="12" sm="3" v-for="field in table.fields" :key="field" class="text-left">
+                                      {{field}}
+                                    </th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <tr
+                                    v-for="(item, index) in log"
+                                    :key="index"
+                                  >
+                                    <td col="12" sm="3">{{ item.timestamp }}</td>
+                                    <td col="12" sm="3">{{ item.action }}</td>
+                                    <td col="12" sm="6">
+                                        <pre v-if="settings.formatLog">{{ item.log }}</pre>
+                                        <span v-else>{{item.log}}</span>
+                                      </td>
+                                  </tr>
+                                </tbody>
+                              </template>
+                             </v-simple-table>
+                         </v-col>
+                     </v-row>
+                 </v-container>
+                 <v-snackbar
+                     v-model="snackbar"
+                     :timeout="snackbarTimeout"
+                     >
+                     {{ snackbarText }}
+ 
+                     <template v-slot:action="{ attrs }">
+                         <v-btn
+                         color="blue"
+                         text
+                         v-bind="attrs"
+                         @click="snackbar = false"
+                         >
+                         Close
+                         </v-btn>
+                     </template>
+                     </v-snackbar>
+             </v-main>
+         </v-app>
+     </div>
+ 
+ 
+     <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+     <script>
+         var app = new Vue({
+             el: '#app',
+             vuetify: new Vuetify(),
+             data: {
+                 codeResource: '',
+                 pollDataExtension: false,
+                 pollAutomation: false,
+                 viewSettings: false,
+                 viewMenu: false,
+                 viewCreateDataExtension: false,
+                 createDataExtensionName: '',
+                 snackbar: false,
+                 snackbarText: '',
+                 snackbarTimeout: 2000,
+                 settings: {
+                     countDownDefault: 30,
+                     automationCountDownDefault: 10,
+                     stopCountDownInDefault: 10,
+                     formatLog: true,
+                     showCountdown: true,
+                     watchAutomation: false
+                 },
+                 countDown: 2,
+                 automationCountDown: 10,
+                 stopCountDownIn: 0,
+                 previousTotal: 0,
+                 table: {
+                     fields: []
+                 },
+                 automationName: '',
+                 automationStatus: '',
+                 automationStatusMessage: '',
+                 logName: '',
+                 log: [],
+                 error: {
+                     logName: {
+                         active: false,
+                         msg: 'Logging Data Extension Name Required.'
+                     }
+                 },
+                 rules: {
+                     required: value => !!value || 'Required',
+                     counter: value => value.length <= 20 || 'Max 20 characters',
+                     email: value => {
+                         const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+                         return pattern.test(value) || 'Invalid e-mail.'
+                     }
+                 }
+             },
+             watch: {
+                 countDown: {
+                     handler(value) {
+                         if (value === 1) {
+                             this.updateLog()
+                         }
+                     }
+                 },
+                 automationCountDown: {
+                     handler(value) {
+                         if (value === 1) {
+                             this.updateAutomationStatus()
+                         }
+                     }
+                 },
+                 pollAutomation: {
+                   handler(value) {
+                      if(value === true){
                         this.automationCountDownTimer()
-                    }
-                }
-            },
-            methods: {
-                countDownTimer() {
-                    if (this.poll) {
-                        if (this.countDown > 0) {
-                            setTimeout(() => {
-                                this.countDown -= 1
-                                this.countDownTimer()
-                            }, 1000)
-                        } else {
-                            this.countDown = this.settings.countDownDefault;
-                            this.countDownTimer()
-                        }
-                    }
-                },
-                automationCountDownTimer() {
-                    if (this.poll) {
-                        if (this.automationCountDown > 0) {
-                            setTimeout(() => {
-                                this.automationCountDown -= 1
-                                this.automationCountDownTimer()
-                            }, 1000)
-                        } else {
-                            this.automationCountDown = this.settings.settings.automationCountDownDefault;
-                            this.automationCountDownTimer()
-                        }
-                    }
-                },
-                isolateHeaders: async function(obj) {
-                    const headers = [];
-                    for (o in obj) {
-                        const key = o;
-                        headers.push(key)
-                    }
-                    return headers
-                },
-                createLoggingDataExtension: async function() {
-                    try {
-
-                        if(!this.createDataExtensionName){
-                            this.snackbarText = `Data Extension Name is Required.`
-                            this.snackbar = true
-                            return
-                        }
-
-                        const resp = await axios.get(`${this.codeResource}?deName=${this.createDataExtensionName}&route=createDataExtension`)
-                        
-                        if(resp.data.Status === "OK"){
-                            this.snackbarText = `${this.createDataExtensionName} has been created.`
-                            this.snackbar = true
-                        } else {
-                            this.snackbarText = `${this.createDataExtensionName} was not created.`
-                            this.snackbar = true
-                        }
-                        
-                        console.log(resp)
-                    } catch (err) {
-                        console.log(err)
-                    }
-                },
-                updateLog: async function() {
-                    try {
-                        const resp = await axios.get(`${this.codeResource}?log=${this.logName}&route=getLog`)
-                        console.log(resp.data)
-                        let holdLog;
-
-                        const headers = await this.isolateHeaders(resp.data[0])
-                        this.table.fields = headers;
-
-                        if (this.previousTotal === resp.data.length) {
-                            if (this.stopCountDownIn === this.settings.stopCountDownInDefault) {
-                                this.poll = false;
-                                this.countDown = this.settings.countDownDefault;
-                                this.stopCountDownIn = 0;
-                            } else {
-                                this.stopCountDownIn += 1
-                                holdLog = [...resp.data]
-                            }
-                        } else {
-                            this.stopCountDownIn += 1
-                            this.previousTotal = resp.data.length;
-                            holdLog = [...resp.data]
-                        }
-
-                        this.log = holdLog.sort(function(a, b) {
-                            // Turn your strings into dates, and then subtract them
-                            // to get a value that is either negative, positive, or zero.
-                            return new Date(b.timestamp) - new Date(a.timestamp);
-                        });
-
-
-                    } catch (err) {
-                        console.log(err)
-                    }
-                }
-            }
-        })
-    </script>
-</body>
-
-</html>
+                      } else {
+                        this.pollAutomation = false;
+                      }
+                   }
+                 },
+                 pollDataExtension: {
+                     handler(value) {
+                         if (value === true) {
+                             if (this.logName.length > 0) {
+                                 this.error.logName.active = false;
+                                 this.countDownTimer()
+                             } else {
+                                 this.error.logName.active = true;
+                                 this.pollDataExtension = false;
+                                 this.countDown = this.settings.countDownDefault;
+                             }
+                         }
+                     }
+                 }
+             },
+             methods: {
+                 countDownTimer() {
+                     if (this.pollDataExtension) {
+                         if (this.countDown > 0) {
+                             setTimeout(() => {
+                                 this.countDown -= 1
+                                 this.countDownTimer()
+                             }, 1000)
+                         } else {
+                             this.countDown = this.settings.countDownDefault;
+                             this.countDownTimer()
+                         }
+                     }
+                 },
+                 automationCountDownTimer() {
+                     if (this.pollAutomation) {
+                         if (this.automationCountDown > 0) {
+                             setTimeout(() => {
+                                 this.automationCountDown -= 1
+                                 this.automationCountDownTimer()
+                             }, 1000)
+                         } else {
+                             this.automationCountDown = this.settings.automationCountDownDefault;
+                             this.automationCountDownTimer()
+                         }
+                     }
+                 },
+                 isolateHeaders: async function(obj) {
+                     const headers = [];
+                     for (o in obj) {
+                         const key = o;
+                         headers.push(key)
+                     }
+                     return headers
+                 },
+                 createLoggingDataExtension: async function() {
+                     try {
+ 
+                         if(!this.createDataExtensionName){
+                             this.snackbarText = `Data Extension Name is Required.`
+                             this.snackbar = true
+                             return
+                         }
+ 
+                         const resp = await axios.get(`${this.codeResource}?deName=${this.createDataExtensionName}&route=createDataExtension`)
+                         
+                         if(resp.data.Status === "OK"){
+                             this.snackbarText = `${this.createDataExtensionName} has been created.`
+                             this.snackbar = true
+                         } else {
+                             this.snackbarText = `${this.createDataExtensionName} was not created.`
+                             this.snackbar = true
+                         }
+                         
+                         console.log(resp)
+                     } catch (err) {
+                         console.log(err)
+                     }
+                 },
+                 updateAutomationStatus: async function() {
+                     try {
+                         const resp = await axios.get(`${this.codeResource}?auto=${this.automationName}&route=getAutomationStatus`)
+                         const status = resp.data.Status;
+                         
+                         switch(status) {
+                             case(-1):
+                                 this.automationStatus = 'Error'; 
+                                 this.automationStatusMessage = 'Program errored out';
+                                 break;
+                             case(0):
+                                 this.automationStatus = 'BuildingError'; 
+                                 this.automationStatusMessage = 'Program errored out during building';
+                                 break;
+                             case(1):
+                                 this.automationStatus = 'Building'; 
+                                 this.automationStatusMessage = 'Program building with activities, schedules, and other elements';
+                                 break;
+                             case(2):
+                                 this.automationStatus = 'Ready'; 
+                                 this.automationStatusMessage = 'Program ready to start';
+                                 break;
+                             case(3):
+                                 this.automationStatus = 'Running'; 
+                                 this.automationStatusMessage = 'Program running';
+                                 break;
+                             case(4):
+                                 this.automationStatus = 'Paused'; 
+                                 this.automationStatusMessage = 'Program paused from running state';
+                                 break;
+                             case(5):
+                                 this.automationStatus = 'Stopped'; 
+                                 this.automationStatusMessage = 'Program stopped';
+                                 break;
+                             case(6):
+                                 this.automationStatus = 'Scheduled'; 
+                                 this.automationStatusMessage = 'Program scheduled';
+                                 break;
+                             case(7):
+                                 this.automationStatus = 'Awaiting'; 
+                                 this.automationStatusMessage = 'Trigger Program waiting for a trigger';
+                                 break;
+                             case(8):
+                                 this.automationStatus = 'InactiveTrigger'; 
+                                 this.automationStatusMessage = 'Program trigger inactive';
+                                 break;
+                             case(9):
+                                 this.automationStatus = 'Skipped'; 
+                                 this.automationStatusMessage = 'Program run skipped';
+                                 break;
+                             case(10):
+                                 this.automationStatus = 'Initialized'; 
+                                 this.automationStatusMessage = 'Program initalized';
+                                 break;
+                         }
+                         
+                     } catch (err) {
+                         console.log(err)
+                     }
+                 },
+                 updateLog: async function() {
+                     try {
+                         const resp = await axios.get(`${this.codeResource}?log=${this.logName}&route=getLog`)
+                         console.log(resp.data)
+                         let holdLog;
+ 
+                         const headers = await this.isolateHeaders(resp.data[0])
+                         this.table.fields = headers;
+ 
+                         if (this.previousTotal === resp.data.length) {
+                             if (this.stopCountDownIn === this.settings.stopCountDownInDefault) {
+                                 this.pollDataExtension = false;
+                                 this.countDown = this.settings.countDownDefault;
+                                 this.stopCountDownIn = 0;
+                             } else {
+                                 this.stopCountDownIn += 1
+                                 holdLog = [...resp.data]
+                             }
+                         } else {
+                             this.stopCountDownIn += 1
+                             this.previousTotal = resp.data.length;
+                             holdLog = [...resp.data]
+                         }
+ 
+                         this.log = holdLog.sort(function(a, b) {
+                             // Turn your strings into dates, and then subtract them
+                             // to get a value that is either negative, positive, or zero.
+                             return new Date(b.timestamp) - new Date(a.timestamp);
+                         });
+ 
+ 
+                     } catch (err) {
+                         console.log(err)
+                     }
+                 }
+             }
+         })
+     </script>
+ </body>
+ 
+ </html>

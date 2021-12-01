@@ -3,7 +3,10 @@ Platform.Load("core", "1.1")
 
 var log = Platform.Request.GetQueryStringParameter('log')
 var deName = Platform.Request.GetQueryStringParameter('deName')
+var automationName = Platform.Request.GetQueryStringParameter('auto')
 var route = Platform.Request.GetQueryStringParameter('route')
+
+var prox = new Script.Util.WSProxy();
 
 switch (route) {
 
@@ -19,9 +22,22 @@ case 'getLog':
     }
 break;
 
+case 'getAutomationStatus':
+
+    var cols = ["Name","ProgramID","CustomerKey","Status"];
+
+    var filter = {
+        Property: "Name",
+        SimpleOperator: "equals",
+        Value: automationName
+    };
+
+    var result = prox.retrieve("Automation", cols, filter);
+    var res = result.Results[0];
+    response(res)
+break;
+
 case 'createDataExtension':
-    var api = new Script.Util.WSProxy();
-    
     var fields = [
         {
             "Name": "timestamp",
@@ -49,7 +65,7 @@ case 'createDataExtension':
         "Fields": fields
     };
 
-    var result = api.createItem("DataExtension", config); 
+    var result = prox.createItem("DataExtension", config); 
 
     response(result)
 break;
@@ -62,8 +78,8 @@ function wsRead(logKey) {
         var d = new Date();
         d.setMinutes(d.getMinutes() - 20);
 
-        var prox = new Script.Util.WSProxy();
         var cols = ["timestamp", "action", "log"];
+
         var filter = {
             LeftOperand: {
                 Property: "timestamp",
