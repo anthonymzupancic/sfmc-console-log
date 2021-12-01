@@ -208,13 +208,12 @@ TODO:
                              </v-btn>
                          </v-col>
                      </v-row>
-                     <v-row class="mt-n5">
+                     <v-row v-show="pollAutomation" class="mt-n5">
                          <v-col
                             cols="12"
                             sm="4"
                         >
-                        
-                        <small v-show="automationStatus"><strong>Automation Status</strong> <br> {{automationStatus}} ({{automationStatusMessage}}) <v-icon class="ml-3 text-subtitle-1" v-show="automationStatus !== 'Running'">mdi-play-box-outline</v-icon></small>
+                        <small v-show="automationStatus"><strong>Automation Status</strong> <br> {{automationStatus}} ({{automationStatusMessage}}) <v-icon class="ml-3 text-body-1" v-show="automationStatus !== 'Running'">mdi-play-box-outline</v-icon></small>
                         </v-col>
                      </v-row>
                      <v-row>
