@@ -95,109 +95,20 @@ TODO:
                      <v-row class="d-flex justify-space-between" no-gutters>
                          <v-col cols="12" sm="5" class="mr-10">
                              <v-text-field v-model="logName" label="Logging Data Extension" placeholder="Enter Data Extension Name" outlined dense></v-text-field>
-                             <!-- <small v-if="error.logName.active">{{error.logName.msg}}</small> -->
                          </v-col>
-                         <v-col v-if="settings.watchAutomation" cols="12" sm="5" class="mr-10">
-                            <v-text-field v-model="automationName" label="Watch Automation" placeholder="Enter Data Extension Name" outlined validate-on-blur dense></v-text-field>
-                            <!-- <small v-if="error.logName.active">{{error.logName.msg}}</small> -->
-                        </v-col>
-                         <v-col cols="12" sm="1">
-                             <div class="text-center">
-                                 <v-menu v-model="viewSettings" :close-on-content-click="false" :nudge-width="200" left offset-x>
-                                     <template v-slot:activator="{ on, attrs }">
-                                     <v-btn
-                                     v-bind="attrs"
-                                     v-on="on">
-                                         <v-icon>mdi-cog-outline</v-icon>
-                                     </v-btn>
-                                         
-                                   </template>
- 
-                                     <v-card>
-                                         <v-list>
-                                             <v-list-item>
-                                                 <v-list-item-content>
-                                                     <v-list-item-title>Configurations</v-list-item-title>
-                                                 </v-list-item-content>
-                                             </v-list-item>
-                                         </v-list>
- 
-                                         <v-divider></v-divider>
- 
-                                         <v-list>
-                                             <v-list-item>
-                                                 <v-list-item-title>Log Refresh</v-list-item-title>
-                                                 <v-list-item-action class="text-center">
-                                                     <v-text-field v-model="settings.countDownDefault"></v-text-field>
-                                                 </v-list-item-action>
-                                             </v-list-item>
-
-                                             <v-list-item class="mt-n3">
-                                                <v-list-item-title>Automation Refresh</v-list-item-title>
-                                                <v-list-item-action class="text-center">
-                                                    <v-text-field v-model="settings.automationCountDownDefault"></v-text-field>
-                                                </v-list-item-action>
-                                            </v-list-item>
- 
-                                             <v-list-item class="mt-n3">
-                                                 <v-list-item-title>Refresh Timeout</v-list-item-title>
-                                                 <v-list-item-action class="text-center">
-                                                     <v-text-field v-model="settings.stopCountDownInDefault"></v-text-field>
-                                                 </v-list-item-action>
-                                             </v-list-item>
- 
-                                             <v-list-item class="mt-n3">
-                                                 <v-list-item-title>Watch Automation</v-list-item-title>
-                                                 <v-list-item-action>
-                                                     <v-switch v-model="settings.watchAutomation" color="blue"></v-switch>
-                                                 </v-list-item-action>
-                                             </v-list-item>
- 
-                                             <v-list-item class="mt-n3">
-                                                 <v-list-item-title>Format Log</v-list-item-title>
-                                                 <v-list-item-action>
-                                                     <v-switch v-model="settings.formatLog" color="blue"></v-switch>
-                                                 </v-list-item-action>
-                                             </v-list-item>
- 
-                                         </v-list>
- 
-                                         <v-card-actions>
-                                             <v-spacer></v-spacer>
- 
-                                             <v-btn text @click="viewSettings = false">
-                                                 Close
-                                             </v-btn>
-                                         </v-card-actions>
-                                     </v-card>
-                                 </v-menu>
-                             </div>
-                         </v-col>
-                     </v-row>
-                     <v-row class="mt-n1 mb-4">
-                         <v-col cols="12" sm="6" class="d-flex">
-                             <v-btn
+                         <v-col cols="12" sm="5" class="mr-10">
+                         <v-btn
                                  outlined
                                  color="grey"
                                  @click="pollDataExtension = !pollDataExtension"
-                                 class="mr-4"
+                                 class="mr-10"
                                  v-show="filterConfigured"
                                  >
                                  <v-icon v-if="!pollDataExtension" class="mr-4">mdi-checkbox-blank-outline</v-icon> 
                                  <v-icon v-else class="mr-4">mdi-checkbox-marked</v-icon>
                                  watch log
                              </v-btn>
-                             <v-btn
-                                 outlined
-                                 color="grey"
-                                 @click="pollAutomation = !pollAutomation"
-                                 class="mr-4"
-                                 v-if="settings.watchAutomation" 
-                                 >
-                                 <v-icon v-if="!pollAutomation" class="mr-4">mdi-checkbox-blank-outline</v-icon> 
-                                 <v-icon v-else class="mr-4">mdi-checkbox-marked</v-icon>
-                                 watch automation
-                             </v-btn>
+
                              <v-dialog
                                 v-model="settings.showFilter"
                                 max-width="70vw"
@@ -338,6 +249,98 @@ TODO:
                                  >
                                  <v-icon>mdi-refresh</v-icon>
                              </v-btn>
+                        </v-col>
+
+                         <v-col cols="12" sm="1">
+                             <div class="text-center">
+                                 <v-menu v-model="viewSettings" :close-on-content-click="false" :nudge-width="200" left offset-x>
+                                     <template v-slot:activator="{ on, attrs }">
+                                     <v-btn
+                                     v-bind="attrs"
+                                     v-on="on">
+                                         <v-icon>mdi-cog-outline</v-icon>
+                                     </v-btn>
+                                         
+                                   </template>
+ 
+                                     <v-card>
+                                         <v-list>
+                                             <v-list-item>
+                                                 <v-list-item-content>
+                                                     <v-list-item-title>Configurations</v-list-item-title>
+                                                 </v-list-item-content>
+                                             </v-list-item>
+                                         </v-list>
+ 
+                                         <v-divider></v-divider>
+ 
+                                         <v-list>
+                                             <v-list-item>
+                                                 <v-list-item-title>Log Refresh</v-list-item-title>
+                                                 <v-list-item-action class="text-center">
+                                                     <v-text-field v-model="settings.countDownDefault"></v-text-field>
+                                                 </v-list-item-action>
+                                             </v-list-item>
+
+                                             <v-list-item class="mt-n3">
+                                                <v-list-item-title>Automation Refresh</v-list-item-title>
+                                                <v-list-item-action class="text-center">
+                                                    <v-text-field v-model="settings.automationCountDownDefault"></v-text-field>
+                                                </v-list-item-action>
+                                            </v-list-item>
+ 
+                                             <v-list-item class="mt-n3">
+                                                 <v-list-item-title>Refresh Timeout</v-list-item-title>
+                                                 <v-list-item-action class="text-center">
+                                                     <v-text-field v-model="settings.stopCountDownInDefault"></v-text-field>
+                                                 </v-list-item-action>
+                                             </v-list-item>
+ 
+                                             <v-list-item class="mt-n3">
+                                                 <v-list-item-title>Watch Automation</v-list-item-title>
+                                                 <v-list-item-action>
+                                                     <v-switch v-model="settings.watchAutomation" color="blue"></v-switch>
+                                                 </v-list-item-action>
+                                             </v-list-item>
+ 
+                                             <v-list-item class="mt-n3">
+                                                 <v-list-item-title>Format Log</v-list-item-title>
+                                                 <v-list-item-action>
+                                                     <v-switch v-model="settings.formatLog" color="blue"></v-switch>
+                                                 </v-list-item-action>
+                                             </v-list-item>
+ 
+                                         </v-list>
+ 
+                                         <v-card-actions>
+                                             <v-spacer></v-spacer>
+ 
+                                             <v-btn text @click="viewSettings = false">
+                                                 Close
+                                             </v-btn>
+                                         </v-card-actions>
+                                     </v-card>
+                                 </v-menu>
+                             </div>
+                         </v-col>
+                     </v-row>
+                     <v-row class="mt-n1 mb-4" no-gutters>
+                        <v-col v-if="settings.watchAutomation" cols="12" sm="5" class="mr-10">
+                            <v-text-field v-model="automationName" label="Watch Automation" placeholder="Enter Data Extension Name" outlined validate-on-blur dense></v-text-field>
+                        </v-col>
+                         <v-col cols="12" sm="6" class="d-flex">
+                             <v-btn
+                                 outlined
+                                 color="grey"
+                                 @click="pollAutomation = !pollAutomation"
+                                 class="mr-10"
+                                 v-if="settings.watchAutomation" 
+                                 >
+                                 <v-icon v-if="!pollAutomation" class="mr-4">mdi-checkbox-blank-outline</v-icon> 
+                                 <v-icon v-else class="mr-4">mdi-checkbox-marked</v-icon>
+                                 watch automation
+                             </v-btn>
+                             
                          </v-col>
                      </v-row>
                      <v-row v-show="automationStatus" class="mt-n5">
