@@ -608,8 +608,9 @@ TODO:
                  updateAutomationStatus: async function() {
                      try {
                          const resp = await axios.get(`${this.codeResource}?auto=${this.automationName}&route=getAutomationStatus`)
-                         const status = resp.data.Status;
- 
+                         const status = resp.data;
+                         console.log(resp)
+                       
                          switch (status) {
                              case (-1):
                                  this.automationStatus = 'Error';
