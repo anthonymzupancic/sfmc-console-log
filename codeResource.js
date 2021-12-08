@@ -12,7 +12,6 @@
     var postData = Platform.Request.GetPostData();
     var postJSON = Platform.Function.ParseJSON(postData);
     
-    var log = Platform.Request.GetQueryStringParameter('log')
     var automationName = Platform.Request.GetQueryStringParameter('auto')
     var route = Platform.Request.GetQueryStringParameter('route')
     
@@ -21,28 +20,13 @@
     switch (route) {
     
     case 'getLog':
-        if (log === null || typeof log === 'undefined') {
+        var logName = postJSON.log;
+        var filter = postJSON.filter;
+
+        if (logName === null) {
             response('Log Data Extension is required')
         } else {
-            var logDE = DataExtension.Retrieve({ Property: "Name", SimpleOperator: "equals", Value: log });
-            var logKey = logDE[0].CustomerKey;
-    
-            var threshold = setLoggingThreshold(minutes)
-    
-            var filter = {
-                LeftOperand: {
-                    Property: "timestamp",
-                    SimpleOperator: "isNotNull",
-                    Value: ""
-                },
-                LogicalOperator: "AND",
-                RightOperand: {
-                    Property: "timestamp",
-                    SimpleOperator: "greaterThanOrEqual",
-                    Value: threshold
-                }
-            };
-    
+            var logKey = getExternalKey(logName)
             var data = wsRead(logKey, filter);
             response(data)
         }
@@ -65,6 +49,12 @@
     
     break;
     
+    case 'getDataExtensionFields': 
+        var dataExtensionName = postJSON.dataExtension;
+        var extKey = getExternalKey(dataExtensionName)
+        var res = getFieldNames(extKey)
+        response(res)
+    break;
     case 'createDataExtension':
         var dataExtensionName = postJSON.deName;
     
@@ -102,11 +92,17 @@
     
     }
     
+    function getExternalKey(dataExtensionName){
+        var logDE = DataExtension.Retrieve({ Property: "Name", SimpleOperator: "equals", Value: dataExtensionName });
+        return logDE[0].CustomerKey;
+    }
     
     function setLoggingThreshold(minutes){
+        var m = Number(minutes) || parseINT(number);
+
         var d = new Date();
-            d.setMinutes(d.getMinutes() - minutes);
-    
+            d.setMinutes(d.getMinutes() - m);
+
             return d
     }
     
@@ -114,12 +110,33 @@
     function wsRead(logKey, filter) {
         try {
     
-            var cols = getFieldNames(logExtKey);
+            var getCols = getFieldNames(logKey);
+            var cols = [];
+          
+          	for(var c = 0; c < getCols.length; c++){
+            	cols.push(getCols[c].fieldName)
+            }
+          	
+          var logFilter;
+          
+            if(filter.SimpleOperator === 'isNotNull'){
+                logFilter = {
+                    Property: filter.Property,
+                    SimpleOperator: filter.SimpleOperator,
+                    Value: ''
+                }
+            } else {
+                logFilter = {
+                    Property: filter.Property,
+                    SimpleOperator: filter.SimpleOperator,
+                    Value: setLoggingThreshold(filter.Value)
+                }
+            }
+
+            var desc = prox.retrieve("DataExtensionObject[" + logKey + "]", cols, logFilter);
+            var formatted = formatResult(desc.Results, "Properties")
     
-            var desc = prox.retrieve("DataExtensionObject[" + logKey + "]", cols, filter);
-            desc = formatResult(desc.Results, "Properties")
-    
-            return desc
+            return formatted
     
         } catch (err) {
     
