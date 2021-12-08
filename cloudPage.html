@@ -1,29 +1,29 @@
 <!-- 
 TODO:   
-    - automation watch - check every 1 - 2 minutes and auto toggle calls when running
-    - manual trigger for read call
     - display logging/debug function to include in script to log
  -->
  <!DOCTYPE html>
  <html>
  
  <head>
-     <title>Welcome to SFMC Console Log</title>
+     <title>Welcome to [sfmc] Console.Log</title>
      <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
      <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
      <link href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
      <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
  </head>
  <style>
-     .link-reset, .link-icon {
-         text-decoration:none;
+     .link-reset,
+     .link-icon {
+         text-decoration: none;
      }
- 
+     
      .link-reset:hover {
          text-decoration: underline;
          text-decoration-color: dimgrey;
      }
  </style>
+ 
  <body>
      <div id="app">
          <v-app>
@@ -31,16 +31,15 @@ TODO:
                  <v-toolbar dense>
                      <!-- <v-app-bar-nav-icon></v-app-bar-nav-icon> -->
                      <v-menu v-model="viewMenu" :close-on-content-click="false" :nudge-width="200" right offset-x offset-y>
-                         <template v-slot:activator="{ on, attrs }">
-                         <div
-                         v-bind="attrs"
-                         v-on="on"
-                         class="mr-5">
-                         <v-icon v-if="viewMenu">mdi-chevron-down</v-icon>
-                         <v-icon v-else>mdi-menu</v-icon>
-                         </div>
-                             
-                       </template>
+                         <template v-slot:activator="{ on }">
+                          <div
+                          v-on="on"
+                          class="mr-5">
+                          <v-icon v-if="viewMenu">mdi-chevron-down</v-icon>
+                          <v-icon v-else>mdi-menu</v-icon>
+                          </div>
+                              
+                        </template>
                          <v-card>
                              <v-list>
                                  <v-list-item @click="viewCreateDataExtension = !viewCreateDataExtension">
@@ -49,7 +48,7 @@ TODO:
                                          <v-icon>mdi-table-plus</v-icon>
                                      </v-list-item-action>
                                  </v-list-item>
-                                 <v-list-item  v-if="viewCreateDataExtension">
+                                 <v-list-item v-if="viewCreateDataExtension">
                                      <v-text-field v-model="createDataExtensionName" label="Log Data Extension Name" placeholder="Enter Name" class="d-flex align-center"></v-text-field>
                                      <v-list-item-action class="text-center">
                                          <v-icon @click="createLoggingDataExtension">mdi-plus</v-icon>
@@ -64,6 +63,79 @@ TODO:
                                          </v-list-item-action>
                                      </v-list-item>
                                  </a>
+ 
+                                 <v-list-item>
+                                     <v-list-item-title>Configuration</v-list-item-title>
+                                     <v-list-item-action class="text-center">
+                                         <v-menu v-model="viewSettings" :close-on-content-click="false" :nudge-width="200" right offset-x>
+                                             <template v-slot:activator="{ on }">
+                                             <v-btn
+                                             text
+                                             v-on="on">
+                                                 <v-icon v-if="viewSettings">mdi-chevron-right</v-icon>
+                                                 <v-icon v-else>mdi-chevron-down</v-icon>
+                                             </v-btn>
+                                                 
+                                           </template>
+ 
+                                             <v-card>
+                                                 <v-list>
+                                                     <v-list-item>
+                                                         <v-list-item-content>
+                                                             <v-list-item-title>Configurations</v-list-item-title>
+                                                         </v-list-item-content>
+                                                     </v-list-item>
+                                                 </v-list>
+ 
+                                                 <v-divider></v-divider>
+ 
+                                                 <v-list>
+                                                     <v-list-item>
+                                                         <v-list-item-title>Log Refresh</v-list-item-title>
+                                                         <v-list-item-action class="text-center">
+                                                             <v-text-field v-model="settings.countDownDefault"></v-text-field>
+                                                         </v-list-item-action>
+                                                     </v-list-item>
+ 
+                                                     <v-list-item class="mt-n3">
+                                                         <v-list-item-title>Automation Refresh</v-list-item-title>
+                                                         <v-list-item-action class="text-center">
+                                                             <v-text-field v-model="settings.automationCountDownDefault"></v-text-field>
+                                                         </v-list-item-action>
+                                                     </v-list-item>
+ 
+                                                     <v-list-item class="mt-n3">
+                                                         <v-list-item-title>Refresh Timeout</v-list-item-title>
+                                                         <v-list-item-action class="text-center">
+                                                             <v-text-field v-model="settings.stopCountDownInDefault"></v-text-field>
+                                                         </v-list-item-action>
+                                                     </v-list-item>
+ 
+                                                     <v-list-item class="mt-n3">
+                                                         <v-list-item-title>Watch Automation</v-list-item-title>
+                                                         <v-list-item-action>
+                                                             <v-switch v-model="settings.watchAutomation" color="blue"></v-switch>
+                                                         </v-list-item-action>
+                                                     </v-list-item>
+ 
+                                                     <v-list-item class="mt-n3">
+                                                         <v-list-item-title>Format Log</v-list-item-title>
+                                                         <v-list-item-action>
+                                                             <v-switch v-model="settings.formatLog" color="blue"></v-switch>
+                                                         </v-list-item-action>
+                                                     </v-list-item>
+                                                 </v-list>
+                                                 <v-card-actions>
+                                                     <v-spacer></v-spacer>
+ 
+                                                     <v-btn text @click="viewSettings = false">
+                                                         Close
+                                                     </v-btn>
+                                                 </v-card-actions>
+                                             </v-card>
+                                         </v-menu>
+                                     </v-list-item-action>
+                                 </v-list-item>
                              </v-list>
  
                              <v-card-actions>
@@ -74,185 +146,209 @@ TODO:
                                  </v-btn>
                              </v-card-actions>
                          </v-card>
-                     </v-menu> 
+                     </v-menu>
                      <v-toolbar-title>[SFMC] console.log</v-toolbar-title>
-               
+ 
                      <v-spacer></v-spacer>
-               
+ 
                      <!-- <v-btn icon>
-                       <v-icon>mdi-magnify</v-icon>
-                     </v-btn>
-               
-                     <v-btn icon>
-                       <v-icon>mdi-heart</v-icon>
-                     </v-btn>
-               
-                     <v-btn icon>
-                       <v-icon>mdi-dots-vertical</v-icon>
-                     </v-btn> -->
-                   </v-toolbar>
+                        <v-icon>mdi-magnify</v-icon>
+                      </v-btn>
+                
+                      <v-btn icon>
+                        <v-icon>mdi-heart</v-icon>
+                      </v-btn>
+                
+                      <v-btn icon>
+                        <v-icon>mdi-dots-vertical</v-icon>
+                      </v-btn> -->
+                 </v-toolbar>
  
-                   
+ 
                  <v-container class="mt-15">
+                     <v-row class="mb-3">
+                         <v-col>
+                             Welcome to [sfmc] Console.Log.<br>Enter the data extension to watch and configure your filter to get started!
+                         </v-col>
+                     </v-row>
+ 
                      <v-row class="d-flex justify-space-between" no-gutters>
-                         <v-col v-if="settings.watchAutomation" cols="12" sm="4" class="mr-10">
-                             <v-text-field v-model="automationName" label="Watch Automation" placeholder="Enter Data Extension Name" outlined validate-on-blur dense></v-text-field>
-                             <!-- <small v-if="error.logName.active">{{error.logName.msg}}</small> -->
-                         </v-col>
-                         <v-col cols="12" sm="4" class="mr-10">
-                             <v-text-field v-model="logName" label="Logging Data Extension" placeholder="Enter Data Extension Name" outlined dense></v-text-field>
-                             <!-- <small v-if="error.logName.active">{{error.logName.msg}}</small> -->
-                         </v-col>
-                         <v-col cols="12" sm="1">
-                             <div class="text-center">
-                                 <v-menu v-model="viewSettings" :close-on-content-click="false" :nudge-width="200" left offset-x>
-                                     <template v-slot:activator="{ on, attrs }">
-                                     <v-btn
-                                     v-bind="attrs"
-                                     v-on="on">
-                                         <v-icon>mdi-cog-outline</v-icon>
+                         <v-col cols="12" sm="6">
+                             <v-row>
+                                 <v-col cols="12" sm="8">
+                                     <v-text-field v-model="logName" label="Logging Data Extension" :hint="!filterConfigured ? 'Configure filter to narrow logging display.' : ''" placeholder="Enter Data Extension Name" outlined dense></v-text-field>
+                                     
+                                 </v-col>
+ 
+                                 <v-col>
+                                     <v-btn outlined dense color="grey" @click="pollDataExtension = !pollDataExtension">
+                                         <v-icon v-if="!pollDataExtension" class="mr-4">mdi-checkbox-blank-outline</v-icon>
+                                         <v-icon v-else class="mr-4" color="green">mdi-checkbox-marked</v-icon>
+                                         watch log
                                      </v-btn>
-                                         
-                                   </template>
- 
-                                     <v-card>
-                                         <v-list>
-                                             <v-list-item>
-                                                 <v-list-item-content>
-                                                     <v-list-item-title>Configurations</v-list-item-title>
-                                                 </v-list-item-content>
-                                             </v-list-item>
-                                         </v-list>
- 
-                                         <v-divider></v-divider>
- 
-                                         <v-list>
-                                             <v-list-item>
-                                                 <v-list-item-title>Log Refresh</v-list-item-title>
-                                                 <v-list-item-action class="text-center">
-                                                     <v-text-field v-model="settings.countDownDefault"></v-text-field>
-                                                 </v-list-item-action>
-                                             </v-list-item>
-
-                                             <v-list-item class="mt-n3">
-                                                <v-list-item-title>Automation Refresh</v-list-item-title>
-                                                <v-list-item-action class="text-center">
-                                                    <v-text-field v-model="settings.automationCountDownDefault"></v-text-field>
-                                                </v-list-item-action>
-                                            </v-list-item>
- 
-                                             <v-list-item class="mt-n3">
-                                                 <v-list-item-title>Refresh Timeout</v-list-item-title>
-                                                 <v-list-item-action class="text-center">
-                                                     <v-text-field v-model="settings.stopCountDownInDefault"></v-text-field>
-                                                 </v-list-item-action>
-                                             </v-list-item>
- 
-                                             <v-list-item class="mt-n3">
-                                                 <v-list-item-title>Watch Automation</v-list-item-title>
-                                                 <v-list-item-action>
-                                                     <v-switch v-model="settings.watchAutomation" color="blue"></v-switch>
-                                                 </v-list-item-action>
-                                             </v-list-item>
- 
-                                             <v-list-item class="mt-n3">
-                                                 <v-list-item-title>Format Log</v-list-item-title>
-                                                 <v-list-item-action>
-                                                     <v-switch v-model="settings.formatLog" color="blue"></v-switch>
-                                                 </v-list-item-action>
-                                             </v-list-item>
- 
-                                         </v-list>
- 
-                                         <v-card-actions>
-                                             <v-spacer></v-spacer>
- 
-                                             <v-btn text @click="viewSettings = false">
-                                                 Close
-                                             </v-btn>
-                                         </v-card-actions>
-                                     </v-card>
-                                 </v-menu>
-                             </div>
+                                 </v-col>
+                             </v-row>
                          </v-col>
-                     </v-row>
-                     <v-row class="mt-n1 mb-4">
-                         <v-col cols="12" sm="6" class="d-flex align-start">
-                             <v-btn
-                                 outlined
-                                 color="grey"
-                                 @click="pollAutomation = !pollAutomation"
-                                 class="mr-4"
-                                 v-if="settings.watchAutomation" 
-                                 >
-                                 <v-icon v-if="!pollAutomation" class="mr-4">mdi-checkbox-blank-outline</v-icon> 
-                                 <v-icon v-else class="mr-4">mdi-checkbox-marked</v-icon>
-                                 watch automation
-                             </v-btn>
-                             <v-btn
-                                 outlined
-                                 color="grey"
-                                 @click="pollDataExtension = !pollDataExtension"
-                                 class="mr-4"
-                                 >
-                                 <v-icon v-if="!pollDataExtension" class="mr-4">mdi-checkbox-blank-outline</v-icon> 
-                                 <v-icon v-else class="mr-4">mdi-checkbox-marked</v-icon>
-                                 watch log
-                             </v-btn>
-                             <v-btn
-                                 outlined
-                                 color="grey"
-                                 class="mr-4"
-                                 @click="triggerRefresh"
-                                 >
-                                 <v-icon class="mr-4">mdi-refresh</v-icon> trigger refresh
+ 
+ 
+                         <v-col cols="12" sm="4" class="d-flex justify-end">
+                             <v-dialog v-model="settings.showFilter" max-width="70vw">
+                                 <template v-slot:activator="{ on, attrs }">
+                                     <v-btn
+                                         class="mr-4"
+                                         v-bind="attrs"
+                                         v-on="on"
+                                         :color="filterConfigured ? 'green' : 'blue darken-2'"
+                                         :elevation="filterConfigured ? 3 : 0"
+                                         outlined
+                                     >
+                                     <v-icon>mdi-filter-outline</v-icon>
+                                     </v-btn>
+                                 </template>
+                                 <v-card>
+                                     <v-card-title>
+                                         <span class="text-h5">Configure Lookup Filter</span>
+                                     </v-card-title>
+                                     <v-card-subtitle>
+                                         <span class="text-subtitle-1">{{logName}}</span>
+                                     </v-card-subtitle>
+ 
+                                    
+ 
+                                     <v-card-text>
+                                         <v-container>
+                                             <v-row class="d-flex align-baseline justify-space-around">
+                                                 <v-col cols="12" sm="5">
+                                                     <v-text-field v-model="logName" label="Logging Data Extension" :hint="!filterConfigured ? 'Configure filter to narrow logging display.' : ''" placeholder="Enter Data Extension Name" outlined dense></v-text-field>
+                                                 </v-col>
+ 
+                                                 <v-col cols="12" sm="5">
+                                                     <v-btn
+                                                     class="ml-4"
+                                                     outlined
+                                                     @click="getDataExtensionFields"
+                                                 >
+                                                     Get Data Extension Fields <v-icon class="ml-4">mdi-arrow-right-circle-outline</v-icon>
+                                                 </v-btn>
+                                                 </v-col>
+                                                 
+                                             </v-row>
+ 
+                                             <v-row class="d-flex align-baseline justify-space-between">
+                                                 <v-col cols="12" sm="5">
+                                                     <v-select label="Filter Type" :items="['simple']" v-model="settings.logFilter.filterType"></v-select>
+                                                 </v-col>
+                                             </v-row>
+                                             <v-row>
+                                                 <v-col cols="12" sm="5">
+                                                     <v-select label="Property*" :items="settings.logFields" required v-model="settings.logFilter.leftOperand.property"></v-select>
+                                                 </v-col>
+                                                 <v-col cols="12" sm="2">
+                                                     <v-select label="Operator*" :items="leftFilterOperators" required v-model="settings.logFilter.leftOperand.simpleOperator"></v-select>
+                                                 </v-col>
+                                                 <v-col cols="12" sm="5">
+                                                     <v-text-field v-show="leftFilterOperators[0].dataType === 'Date'" :placeholder="leftFilterOperators[0].dataType === 'Date' ? 'Number in Minutes' : ''" label="Value* " v-model="settings.logFilter.leftOperand.value"></v-text-field>
+                                                 </v-col>
+                                             </v-row>
+                                             <v-row v-if="settings.logFilter.filterType === 'complex'">
+                                                 <v-col cols="2">
+                                                     <v-select label="Logical Operator*" :items="['AND', 'OR']" v-model="settings.logFilter.logicalOperator"></v-select>
+                                                 </v-col>
+                                             </v-row>
+ 
+                                             <v-row v-if="settings.logFilter.filterType === 'complex'">
+                                                 <v-col cols="12" sm="5">
+                                                     <v-select label="Property*" :items="settings.logFields" required v-model="settings.logFilter.rightOperand.property"></v-select>
+                                                 </v-col>
+                                                 <v-col cols="12" sm="2">
+                                                     <v-select label="Operator*" :items="rightFilterOperators" required v-model="settings.logFilter.rightOperand.simpleOperator"></v-select>
+                                                 </v-col>
+                                                 <v-col cols="12" sm="5">
+                                                     <v-text-field label="Value*" v-model="settings.logFilter.rightOperand.value" required></v-text-field>
+                                                 </v-col>
+                                             </v-row>
+                                         </v-container>
+                                         <small>*indicates required field</small>
+                                     </v-card-text>
+                                     <v-card-actions>
+                                         <v-spacer></v-spacer>
+                                         <v-btn color="blue darken-1" text @click="settings.showFilter = false">
+                                             Close
+                                         </v-btn>
+                                         <v-btn color="blue darken-1" text @click="settings.showFilter = false">
+                                             Save
+                                         </v-btn>
+                                     </v-card-actions>
+                                 </v-card>
+                             </v-dialog>
+                             <v-btn class="mr-4" elevation="3" outlined @click="triggerRefresh">
+                                 <v-icon>mdi-refresh</v-icon>
                              </v-btn>
                          </v-col>
+ 
                      </v-row>
+ 
+ 
+                     
+ 
+                     <v-row class="mt-n1 mb-4 d-flex justify-space-between" no-gutters>
+                         <v-col cols="12" sm="8">
+                             <v-row>
+                                 <v-col v-if="settings.watchAutomation" cols="12" sm="6">
+                                     <v-text-field v-model="automationName" label="Watch Automation" placeholder="Enter Data Extension Name" outlined validate-on-blur dense></v-text-field>
+                                 </v-col>
+ 
+                                 <v-col>
+                                     <v-btn outlined color="grey" @click="pollAutomation = !pollAutomation" v-if="settings.watchAutomation">
+                                         <v-icon v-if="!pollAutomation" class="mr-4">mdi-checkbox-blank-outline</v-icon>
+                                         <v-icon v-else class="mr-4"  color="green">mdi-checkbox-marked</v-icon>
+                                         watch automation
+                                     </v-btn>
+         
+                                 </v-col>
+                             </v-row>
+                         </v-col>       
+                     </v-row>
+ 
+                     
+                                     
                      <v-row v-show="automationStatus" class="mt-n5">
-                         <v-col
-                            cols="12"
-                            sm="4"
-                        >
-                        <small><strong>Automation Status</strong> <br> {{automationStatus}} ({{automationStatusMessage}}) <v-icon class="ml-3 text-body-1" v-show="automationStatus !== 'Running'">mdi-play-box-outline</v-icon></small>
-                        </v-col>
+                         <v-col cols="12" sm="4">
+                             <small><strong>Automation Status</strong> <br> {{automationStatus}} ({{automationStatusMessage}}) <v-icon class="ml-3 text-body-1" v-show="automationStatus !== 'Running'">mdi-play-box-outline</v-icon></small>
+                         </v-col>
                      </v-row>
                      <v-row>
                          <v-col col="12" class="blue-grey lighten-5 p-5">
                              <v-simple-table fixed-header height="65vh">
                                  <template v-slot:default>
-                                <thead>
-                                  <tr>
-                                    <th col="12" sm="3" v-for="field in table.fields" :key="field" class="text-left">
-                                      {{field}}
-                                    </th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  <tr
-                                    v-for="(item, index) in log"
-                                    :key="index"
-                                  >
-                                    <td col="12" sm="3">{{ item.timestamp }}</td>
-                                    <td col="12" sm="3">{{ item.action }}</td>
-                                    <td col="12" sm="6">
-                                        <pre v-if="settings.formatLog">{{ item.log }}</pre>
-                                        <span v-else>{{item.log}}</span>
-                                      </td>
-                                  </tr>
-                                </tbody>
-                              </template>
+                                 <thead>
+                                   <tr>
+                                     <th col="12" sm="3" v-for="field in table.fields" :key="field" class="text-left">
+                                       {{field}}
+                                     </th>
+                                   </tr>
+                                 </thead>
+                                 <tbody>
+                                   <tr
+                                     v-for="(item, index) in log"
+                                     :key="index"
+                                   >
+                                     <td col="12" sm="3">{{ item.timestamp }}</td>
+                                     <td col="12" sm="3">{{ item.action }}</td>
+                                     <td col="12" sm="6">
+                                         <pre v-if="settings.formatLog">{{ item.log }}</pre>
+                                         <span v-else>{{item.log}}</span>
+                                       </td>
+                                   </tr>
+                                 </tbody>
+                               </template>
                              </v-simple-table>
                          </v-col>
                      </v-row>
                  </v-container>
-                 <v-snackbar
-                     v-model="snackbar"
-                     class="text-center"
-                     :timeout="snackbarTimeout"
-                     >
+                 <v-snackbar v-model="snackbar" class="text-center" :timeout="snackbarTimeout">
                      {{ snackbarText }}
-                     </v-snackbar>
+                 </v-snackbar>
              </v-main>
          </v-app>
      </div>
@@ -282,7 +378,23 @@ TODO:
                      stopCountDownInDefault: 10,
                      formatLog: true,
                      showCountdown: true,
-                     watchAutomation: false
+                     showFilter: false,
+                     watchAutomation: false,
+                     logFields: [],
+                     logFilter: {
+                         filterType: 'simple',
+                         leftOperand: {
+                             property: '',
+                             simpleOperator: '',
+                             value: ''
+                         },
+                         logicalOperator: '',
+                         rightOperand: {
+                             property: '',
+                             simpleOperator: '',
+                             value: ''
+                         }
+                     }
                  },
                  countDown: 2,
                  automationCountDown: 10,
@@ -304,6 +416,10 @@ TODO:
                      automationName: {
                          active: false,
                          msg: 'Automation Name Required.'
+                     },
+                     filter: {
+                         active: false,
+                         msg: 'Configure a filter to watch Data Extension.'
                      }
                  },
                  rules: {
@@ -331,47 +447,103 @@ TODO:
                      }
                  },
                  pollAutomation: {
-                   handler(value) {
-                      if(value === true){
-                        if (this.automationName.length > 0) {
-                            this.error.automationName.active = false;
-                            this.automationCountDownTimer()
-                        } else {
-                            this.error.automationName.active = true;
-                            this.pollAutomation = false;
-                            this.automationCountDown = this.settings.automationCountDownDefault
-
-                            this.snackbarText = `${this.error.automationName.msg}`
-                            this.snackbar = true
-                        }
-                        
-                      } else {
-                        this.pollAutomation = false;
-                      }
-                   }
+                     handler(value) {
+                         if (value === true) {
+                             if (this.automationName.length > 0) {
+                                 this.error.automationName.active = false;
+                                 this.automationCountDownTimer()
+                             } else {
+ 
+                                 this.error.automationName.active = true;
+                                 this.pollAutomation = false;
+                                 this.automationCountDown = this.settings.automationCountDownDefault
+ 
+                                 this.snackbarText = `${this.error.automationName.msg}`
+                                 this.snackbar = true
+                             }
+ 
+                         } else {
+                             this.pollAutomation = false;
+                         }
+                     }
                  },
                  pollDataExtension: {
                      handler(value) {
                          if (value === true) {
+ 
                              if (this.logName.length > 0) {
                                  this.error.logName.active = false;
                                  this.countDownTimer()
+ 
                              } else {
+ 
                                  this.error.logName.active = true;
                                  this.pollDataExtension = false;
                                  this.countDown = this.settings.countDownDefault;
-
-                                this.snackbarText = `${this.error.logName.msg}`
-                                this.snackbar = true
+ 
+                                 this.snackbarText = `${this.error.logName.msg}`
+                                 this.snackbar = true
                              }
                          }
                      }
                  }
              },
+             computed: {
+                 filterConfigured() {
+                     let leftOperand = this.settings.logFilter.leftOperand;
+                     if (leftOperand.property && leftOperand.simpleOperator && leftOperand.value) {
+                         return true
+                     }
+ 
+                     return false
+                 },
+                 leftFilterOperators() {
+                     let selectedProperty = this.settings.logFilter.leftOperand.property;
+                     let selectedFieldInfo = this.settings.logFields ? this.settings.logFields.filter((field) => {
+                         return field.value === selectedProperty
+                     }) : null;
+ 
+                     let dataType = selectedFieldInfo && selectedFieldInfo[0] ? selectedFieldInfo[0].dataType : null;
+                     if(dataType && dataType === 'Date') {
+                         return [{
+                             text: 'greaterThanOrEqual',
+                             value: 'greaterThanOrEqual',
+                             dataType: dataType
+                         }]
+                     } else {
+                         return [{
+                             text: 'isNotNull',
+                             value: 'isNotNull',
+                             dataType: dataType
+                         }]
+                     }
+                 },
+                 rightFilterOperators() {
+                     let selectedProperty = this.settings.logFilter.rightOperand.property;
+                     let selectedFieldInfo = this.settings.logFields ? this.settings.logFields.filter((field) => {
+                         return field.value === selectedProperty
+                     }) : null;
+ 
+                     let dataType = selectedFieldInfo && selectedFieldInfo[0] ? selectedFieldInfo[0].dataType : null;
+                     if(dataType && dataType === 'Date') {
+                         return [{
+                             text: 'greaterThanOrEquals',
+                             value: 'greaterThanOrEquals',
+                             dataType: dataType
+                         }]
+                     } else {
+                         return [{
+                             text: 'isNotNull',
+                             value: 'isNotNull',
+                             dataType: dataType
+                         }]
+                     }
+                 }
+             },
              methods: {
                  triggerRefresh() {
-                    this.updateAutomationStatus();
-                    this.updateLog();
+                     this.updateAutomationStatus();
+                     this.updateLog();
                  },
                  countDownTimer() {
                      if (this.pollDataExtension) {
@@ -410,22 +582,24 @@ TODO:
                  createLoggingDataExtension: async function() {
                      try {
  
-                         if(!this.createDataExtensionName){
+                         if (!this.createDataExtensionName) {
                              this.snackbarText = `Data Extension Name is Required.`
                              this.snackbar = true
                              return
                          }
  
-                         const resp = await axios.get(`${this.codeResource}?deName=${this.createDataExtensionName}&route=createDataExtension`)
-                         
-                         if(resp.data.Status === "OK"){
+                         const resp = await axios.post(`${this.codeResource}?route=createDataExtension`, {
+                             deName: this.createDataExtensionName
+                         })
+ 
+                         if (resp.data.Status === "OK") {
                              this.snackbarText = `${this.createDataExtensionName} has been created.`
                              this.snackbar = true
                          } else {
                              this.snackbarText = `${this.createDataExtensionName} was not created.`
                              this.snackbar = true
                          }
-                         
+ 
                          console.log(resp)
                      } catch (err) {
                          console.log(err)
@@ -434,67 +608,138 @@ TODO:
                  updateAutomationStatus: async function() {
                      try {
                          const resp = await axios.get(`${this.codeResource}?auto=${this.automationName}&route=getAutomationStatus`)
-                         const status = resp.data.Status;
-                         
-                         switch(status) {
-                             case(-1):
-                                 this.automationStatus = 'Error'; 
+                         const status = resp.data;
+                         console.log(resp)
+                       
+                         switch (status) {
+                             case (-1):
+                                 this.automationStatus = 'Error';
                                  this.automationStatusMessage = 'Program errored out';
                                  break;
-                             case(0):
-                                 this.automationStatus = 'BuildingError'; 
+                             case (0):
+                                 this.automationStatus = 'BuildingError';
                                  this.automationStatusMessage = 'Program errored out during building';
                                  break;
-                             case(1):
-                                 this.automationStatus = 'Building'; 
+                             case (1):
+                                 this.automationStatus = 'Building';
                                  this.automationStatusMessage = 'Program building with activities, schedules, and other elements';
                                  break;
-                             case(2):
-                                 this.automationStatus = 'Ready'; 
+                             case (2):
+                                 this.automationStatus = 'Ready';
                                  this.automationStatusMessage = 'Program ready to start';
                                  break;
-                             case(3):
-                                 this.automationStatus = 'Running'; 
+                             case (3):
+                                 this.automationStatus = 'Running';
                                  this.automationStatusMessage = 'Program running';
                                  break;
-                             case(4):
-                                 this.automationStatus = 'Paused'; 
+                             case (4):
+                                 this.automationStatus = 'Paused';
                                  this.automationStatusMessage = 'Program paused from running state';
                                  break;
-                             case(5):
-                                 this.automationStatus = 'Stopped'; 
+                             case (5):
+                                 this.automationStatus = 'Stopped';
                                  this.automationStatusMessage = 'Program stopped';
                                  break;
-                             case(6):
-                                 this.automationStatus = 'Scheduled'; 
+                             case (6):
+                                 this.automationStatus = 'Scheduled';
                                  this.automationStatusMessage = 'Program scheduled';
                                  break;
-                             case(7):
-                                 this.automationStatus = 'Awaiting'; 
+                             case (7):
+                                 this.automationStatus = 'Awaiting';
                                  this.automationStatusMessage = 'Trigger Program waiting for a trigger';
                                  break;
-                             case(8):
-                                 this.automationStatus = 'InactiveTrigger'; 
+                             case (8):
+                                 this.automationStatus = 'InactiveTrigger';
                                  this.automationStatusMessage = 'Program trigger inactive';
                                  break;
-                             case(9):
-                                 this.automationStatus = 'Skipped'; 
+                             case (9):
+                                 this.automationStatus = 'Skipped';
                                  this.automationStatusMessage = 'Program run skipped';
                                  break;
-                             case(10):
-                                 this.automationStatus = 'Initialized'; 
+                             case (10):
+                                 this.automationStatus = 'Initialized';
                                  this.automationStatusMessage = 'Program initalized';
                                  break;
                          }
-                         
+ 
                      } catch (err) {
                          console.log(err)
                      }
                  },
+                 setFilter(){
+                     let filterType = this.settings.logFilter.filterType;
+ 
+                     switch(filterType) {
+                         case 'simple':
+ 
+                             return {
+                                 Property: this.settings.logFilter.leftOperand.property,
+                                 SimpleOperator: this.settings.logFilter.leftOperand.simpleOperator,
+                                 Value: this.settings.logFilter.leftOperand.value
+                             }
+ 
+                         break;
+ 
+                         case 'complex':
+                         return {
+                             LeftOperand: {
+                                 Property: this.settings.logFilter.leftOperand.property,
+                                 SimpleOperator: this.settings.logFilter.leftOperand.simpleOperator,
+                                 Value: this.settings.logFilter.leftOperand.value
+                             },
+                             LogicalOperator: this.settings.logFilter.logicalOperator,
+                             RightOperand: {
+                                 Property: this.settings.logFilter.rightOperand.property,
+                                 SimpleOperator: this.settings.logFilter.rightOperand.simpleOperator,
+                                 Value: this.settings.logFilter.rightOperand.value
+                             }
+                         }
+                         break;
+ 
+                     }
+                 },
+                 getDataExtensionFields: async function() {
+                     const dataExtension = this.logName;
+ 
+                     if(!dataExtension){
+                         this.snackbarText = `Please input a Data Extension Name.`
+                         this.snackbar = true
+                         return
+                     }
+ 
+                     const resp = await axios.post(`${this.codeResource}?route=getDataExtensionFields`, {
+                         dataExtension: dataExtension
+                     })
+ 
+                     const fields = resp.data
+                     const logFields = this.settings.logFields;
+ 
+                     for(let f in fields){
+                         let field = fields[f]
+ 
+                         logFields.push({
+                             text: field.fieldName,
+                             value: field.fieldName,
+                             disabled: false,
+                             dataType: field.dataType
+                         })
+                     }
+                     
+ 
+                     console.log(resp)
+ 
+                 },
                  updateLog: async function() {
                      try {
-                         const resp = await axios.get(`${this.codeResource}?log=${this.logName}&route=getLog`)
-                         console.log(resp.data)
+ 
+                         let filter = this.setFilter()
+ 
+                         const resp = await axios.post(`${this.codeResource}?route=getLog`, {
+                             log: this.logName,
+                             filter: filter
+                         })
+ 
+                         console.log(resp)
                          let holdLog;
  
                          const headers = await this.isolateHeaders(resp.data[0])
