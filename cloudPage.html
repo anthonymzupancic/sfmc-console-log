@@ -601,7 +601,7 @@
                          console.log(err)
                      }
                  },
-                 startAutomation: function() {
+                 startAutomation: async function() {
                     const resp = await axios.post(`${this.codeResource}?route=startAutomation`, {
                          automationName: this.automationName
                      })
