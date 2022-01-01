@@ -310,7 +310,7 @@
                                      
                      <v-row v-show="automationStatus" class="mt-n5">
                          <v-col cols="12" sm="4">
-                             <small><strong>Automation Status</strong> <br> {{automationStatus}} ({{automationStatusMessage}}) <v-icon class="ml-3 text-body-1" v-show="automationStatus !== 'Running'">mdi-play-box-outline</v-icon></small>
+                             <small><strong>Automation Status</strong> <br> {{automationStatus}} ({{automationStatusMessage}}) <v-icon class="ml-3 text-body-1" @click="startAutomation" v-show="automationStatus !== 'Running'">mdi-play-box-outline</v-icon></small>
                          </v-col>
                      </v-row>
                      <v-row>
@@ -600,6 +600,13 @@
                      } catch (err) {
                          console.log(err)
                      }
+                 },
+                 startAutomation: function() {
+                    const resp = await axios.post(`${this.codeResource}?route=startAutomation`, {
+                         automationName: this.automationName
+                     })
+                     console.log(resp)
+
                  },
                  updateAutomationStatus: async function() {
                      try {

@@ -89,6 +89,28 @@
     
         response(result)
     break;
+
+    case 'startAutomation':
+        var automationName = postJSON.automationName;
+    
+        var automationIDConfig = {
+            Property: "Name",
+            SimpleOperator: "equals",
+            Value: automationName
+        }
+
+        var automationObjectIDReq = prox.retrieve("Automation", ["ProgramID"], automationIDConfig);
+        var automationObjectID = automationObjectIDReq.Results[0].ObjectID;
+
+        var opts = {};
+        var props = {
+            ObjectID: automationObjectID
+        };
+
+        var result = prox.performItem("Automation", props, "start", opts);
+    
+        response(result)
+    break;
     
     }
     
@@ -113,10 +135,10 @@
             var getCols = getFieldNames(logKey);
             var cols = [];
           
-          	for(var c = 0; c < getCols.length; c++){
-            	cols.push(getCols[c].fieldName)
+           for(var c = 0; c < getCols.length; c++){
+             cols.push(getCols[c].fieldName)
             }
-          	
+           
           var logFilter;
           
             if(filter.SimpleOperator === 'isNotNull'){
